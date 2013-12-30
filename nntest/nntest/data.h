@@ -9,7 +9,7 @@
 #ifndef nntest_data_h
 #define nntest_data_h
 
-
+#include <cassert>
 
 class Data {
 public:
@@ -19,9 +19,15 @@ public:
   
   virtual ~Data() {};
   
-  int get_index(int idx_dim0, int idx_dim1) {return idx_dim0*m_size_dim1+idx_dim1;};
+  int get_index(int idx_dim0, int idx_dim1) const {
+    int idx = idx_dim0*m_size_dim1+idx_dim1;
+    assert(idx < get_count());
+    return idx;
+  };
   
   virtual double* get_data() const = 0;
+  
+  virtual double get_data_at(int row, int column) const {return get_data()[get_index(row, column)]; };
   
   virtual void copy_from(const Data& other) = 0;
   

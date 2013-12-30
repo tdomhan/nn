@@ -10,11 +10,16 @@
 #define nntest_linear_layer_h
 
 #include "layer.h"
+#include "math_util.h"
 #include "data.h"
 
 class LinearLayer : public Layer {
 public:
   LinearLayer(int num_hidden);
+  
+  LinearLayer(int num_hidden, UnaryMathOp const* initialize);
+  
+  ~LinearLayer();
   
   virtual void setup();
   
@@ -34,6 +39,7 @@ private:
   Data* m_weights;
   Data* m_bias;
   Data* m_output;
+  UnaryMathOp const* m_initialize;
 };
 
 

@@ -15,32 +15,72 @@ class MatrixMultiplication {
 public:
   MatrixMultiplication(Data* matrix1, Data* matrix2, Data* result_matrix);
   
-  void execute();
+  virtual void execute() = 0;
   
-private:
+protected:
   Data* m_matrix1;
   Data* m_matrix2;
   Data* m_result_matrix;
 };
 
-class UniformRandom {
+class MatrixMultiplicationBasic : public MatrixMultiplication {
 public:
-  UniformRandom(Data* matrix) : m_matrix(matrix) {};
+  MatrixMultiplicationBasic(Data* matrix1, Data* matrix2, Data* result_matrix)
+    : MatrixMultiplication(matrix1, matrix2, result_matrix) {};
   
-  void execute();
+  virtual void execute();
 private:
-  Data* m_matrix;
   
 };
 
-class SetConst {
+class MatrixMultiplicationMKL :  public MatrixMultiplication {
 public:
-  SetConst(Data* matrix, double value) : m_matrix(matrix), m_value(value) {};
-  
-  void execute();
+  MatrixMultiplicationMKL(Data* matrix1, Data* matrix2, Data* result_matrix)
+    : MatrixMultiplication(matrix1, matrix2, result_matrix) {};
+  virtual void execute();
 private:
-  Data* m_matrix;
+};
+
+class UnaryMathOp {
+public:
+  virtual void execute(Data* matrix) const = 0;
+  virtual ~UnaryMathOp() {};
+private:
+};
+
+class UniformRandom : public UnaryMathOp {
+public:
+  UniformRandom(double max) : m_max(max) {};
+  
+  virtual void execute(Data* matrix) const;
+private:
+  double m_max;
+};
+
+class SetConst : public UnaryMathOp {
+public:
+  SetConst(double value) : m_value(value) {};
+  
+  virtual void execute(Data* matrix) const;
+private:
   double m_value;
+};
+
+class DualMathOp {
+public:
+  virtual void execute(Data* matrix1, Data* matrix2) const = 0;
+  virtual ~DualMathOp() {};
+private:
+};
+
+/**
+ * Adds a vector row by row
+ */
+class PlusEqualRow: public DualMathOp {
+public:
+  virtual void execute(Data* matrix, Data* row) const;
+  virtual ~PlusEqualRow() {};
+private:
 };
 
 #endif

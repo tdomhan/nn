@@ -22,7 +22,6 @@ DataLayer::DataLayer(Data* dataset, int batch_size)
 };
 
 void DataLayer::setup() {
-
 }
 
 void DataLayer::forward() {
@@ -36,11 +35,7 @@ void DataLayer::backward() {
 }
 
 Data* DataLayer::get_output() {
-  if(batches_remaining()) {
-    return m_dataset->get_rows_slice(m_current_pointer, m_current_pointer+m_batch_size);
-  } else {
-    return NULL;
-  }
+  return m_output;
 }
 
 int DataLayer::get_output_size(int dim) {

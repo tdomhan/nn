@@ -17,7 +17,7 @@ public:
 
   void connect_top(Layer* top) {m_top = top; m_has_top = true;};
   
-  void connect_bottom(Layer* bottom) {m_bottom = bottom; m_has_bottom=true;};
+  void connect_bottom(Layer* bottom) {m_bottom = bottom; m_has_bottom = true;};
   
   virtual void setup() = 0;
   

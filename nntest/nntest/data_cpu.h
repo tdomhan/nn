@@ -24,7 +24,7 @@ public:
   
   virtual void copy_from(const Data& other);
   
-  virtual void print();
+  virtual void print(); 
   
 private:
   double* m_data;
