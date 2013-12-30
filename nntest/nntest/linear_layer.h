@@ -1,0 +1,40 @@
+//
+//  linear_layer.h
+//  nntest
+//
+//  Created by Tobias Domhan on 12/28/13.
+//  Copyright (c) 2013 Tobias Domhan. All rights reserved.
+//
+
+#ifndef nntest_linear_layer_h
+#define nntest_linear_layer_h
+
+#include "layer.h"
+#include "data.h"
+
+class LinearLayer : public Layer {
+public:
+  LinearLayer(int num_hidden);
+  
+  virtual void setup();
+  
+  //Forward pass
+  virtual void forward();
+  
+  // the error
+  virtual void backward();
+  
+  //output off this layer afer the forward pass
+  virtual Data* get_output();
+  
+  virtual int get_output_size(int dimension);
+  
+private:
+  int m_num_hidden;
+  Data* m_weights;
+  Data* m_bias;
+  Data* m_output;
+};
+
+
+#endif
