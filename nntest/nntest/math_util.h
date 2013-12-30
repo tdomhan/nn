@@ -66,6 +66,28 @@ private:
   double m_value;
 };
 
+class AllNegativeZero : public UnaryMathOp {
+public:
+  AllNegativeZero() {};
+  
+  virtual void execute(Data* matrix) const;
+private:
+  double m_value;
+};
+
+
+/**
+ * Apply the softmax function, normalized row by row
+ */
+class SoftmaxRowByRow : public UnaryMathOp {
+public:
+  SoftmaxRowByRow() {};
+  
+  virtual void execute(Data* matrix) const;
+private:
+  double m_value;
+};
+
 class DualMathOp {
 public:
   virtual void execute(Data* matrix1, Data* matrix2) const = 0;

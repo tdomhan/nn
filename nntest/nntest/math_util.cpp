@@ -81,6 +81,33 @@ void SetConst::execute(Data* matrix) const {
   }
 }
 
+void AllNegativeZero::execute(Data* matrix) const{
+  double* data = matrix->get_data();
+  int dim0 = matrix->get_size_dim(0);
+  int dim1 = matrix->get_size_dim(1);
+  for (int i = 0; i<dim0; i++) {
+    for (int j=0; j<dim1; j++) {
+      double val = matrix->get_data_at(i, j);
+      data[matrix->get_index(i, j)] = fmax(0,val);
+    }
+  }
+}
+
+void SoftmaxRowByRow::execute(Data* matrix) const {
+  int num_rows = matrix->get_size_dim(0);
+  int num_columns = matrix->get_size_dim(1);
+  for (int row_id=0; row_id < num_rows; row_id++) {
+    double row_sum = 0;
+    for (int column_id=0; column_id < num_columns; column_id++) {
+      row_sum += exp(matrix->get_data_at(row_id, column_id));
+    }
+    for (int column_id=0; column_id < num_columns; column_id++) {
+      double val = matrix->get_data_at(row_id, column_id);
+      matrix->get_data()[matrix->get_index(row_id, column_id)] = exp(val) / row_sum;
+    }
+  }
+}
+
 
 void PlusEqualRow::execute(Data* matrix, Data* row) const {
   //make sure row is a vector

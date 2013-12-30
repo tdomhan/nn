@@ -8,11 +8,16 @@
 
 #include <iostream>
 #include <cassert>
+#include <cmath>
 
 #include "data.h"
 #include "data_cpu.h"
 #include "data_layer.h"
 #include "linear_layer.h"
+#include "relu_layer.h"
+#include "softmax_layer.h"
+
+#define EPS 0.0001
 
 void test_matrix_multiplication() {
   double d1[4][2] = {{1,2},{3,4},{5,6},{7,8}};
@@ -28,8 +33,35 @@ void test_matrix_multiplication() {
   mm.execute();
   std::cout << "result" << std::endl;
   result.print();
-  assert(result.get_data()[0] == 1*1+2*5);
-  assert(result.get_data()[result.get_count()-1] == 7*4 + 8*8);
+  assert(result.get_data()[0] - (1*1+2*5) < EPS);
+  assert(result.get_data()[result.get_count()-1] - (7*4 + 8*8) < EPS);
+}
+
+
+void test_layer(Layer* layer, Data* input, Data* expected_output) {
+  DataLayer* data_layer = new DataLayer(input, input->get_size_dim(1));
+  data_layer->connect_top(layer);
+  layer->connect_bottom(data_layer);
+  
+  data_layer->setup();
+  layer->setup();
+  
+  data_layer->forward();
+  layer->forward();
+  
+  Data* output = layer->get_output();
+  assert(output->get_size_dim(0) == expected_output->get_size_dim(0));
+  assert(output->get_size_dim(1) == expected_output->get_size_dim(1));
+  
+  int out_size_dim0 = layer->get_output_size(0);
+  int out_size_dim1 = layer->get_output_size(1);
+  for (int i=0; i<out_size_dim0; i++) {
+    for (int j=0; j<out_size_dim1; j++) {
+      assert((output->get_data_at(i, j) - expected_output->get_data_at(i, j)) < EPS);
+    }
+  }
+  
+  delete data_layer;
 }
 
 void test_linear_layer() {
@@ -69,6 +101,57 @@ void test_linear_layer() {
   std::cout << "Completed linear layer test" << std::endl;
 }
 
+void test_relu_layer() {
+  ReluLayer* relu_layer = new ReluLayer();
+  int num_samples = 2;
+  int input_dim = 2;
+  double d_in[2][2] = {{1,-2},{0,5}};
+  double d_out_expected[2][2] = {{1,0},{0,5}};
+  Data* data = new DataCPU(num_samples, input_dim, (double*)d_in);
+  
+  DataLayer* data_layer = new DataLayer(data, num_samples);
+  data_layer->connect_top(relu_layer);
+  relu_layer->connect_bottom(data_layer);
+  
+  data_layer->setup();
+  relu_layer->setup();
+  
+  data_layer->forward();
+  relu_layer->forward();
+  
+  Data* output = relu_layer->get_output();
+  
+  int out_size_dim0 = relu_layer->get_output_size(0);
+  int out_size_dim1 = relu_layer->get_output_size(1);
+  for (int i=0; i<out_size_dim0; i++) {
+    for (int j=0; j<out_size_dim1; j++) {
+      assert((output->get_data_at(i, j) - d_out_expected[i][j]) < EPS);
+    }
+  }
+  
+  delete relu_layer;
+  delete data_layer;
+  std::cout << "Completed relu layer test" << std::endl;
+}
+
+
+void test_softmax_layer() {
+  SoftMaxLayer* soft_max = new SoftMaxLayer();
+  int num_samples = 2;
+  int input_dim = 2;
+  double d_in[2][2] = {{1,9},{0,5}};
+  double d_out_expected[2][2] = {{exp(1)/(exp(1)+exp(9)), exp(9)/(exp(1)+exp(9))},
+                                 {exp(0)/(exp(0)+exp(5)), exp(5)/(exp(0)+exp(5))}};
+  Data* data_input = new DataCPU(num_samples, input_dim, (double*)d_in);
+  Data* data_expected_output = new DataCPU(num_samples, input_dim, (double*)d_out_expected);
+  
+  test_layer(soft_max, data_input, data_expected_output);
+  
+  delete soft_max;
+  delete data_input;
+  delete data_expected_output;
+  std::cout << "Completed softmax layer test" << std::endl;
+}
 
 void run_example() {
   int num_samples = 100;
@@ -115,6 +198,8 @@ int main(int argc, const char * argv[])
 {
   test_matrix_multiplication();
   test_linear_layer();
+  test_relu_layer();
+  test_softmax_layer();
 
   run_example();
   return 0;
