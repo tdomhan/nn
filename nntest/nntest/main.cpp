@@ -58,9 +58,9 @@ void test_matrix_multiplication_transpose() {
   std::cout << "m2" << std::endl;
   m2.print();
   DataCPU result(2,2);
-  MatrixMultiplicationMKL mm(&m1, MatrixMultiplication::MatrixOp::MatrixTranspose,
-                             &m2, MatrixMultiplication::MatrixOp::MatrixTranspose,
-                             &result);
+  MatrixMultiplicationMKL mm(&m1, &m2,&result,
+                             MatrixMultiplication::MatrixOp::MatrixTranspose,
+                             MatrixMultiplication::MatrixOp::MatrixTranspose);
   mm.execute();
   std::cout << "result" << std::endl;
   result.print();

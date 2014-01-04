@@ -11,15 +11,21 @@
 
 #include "data.h"
 
+/**
+ * C = alpha * AB + beta * C
+ * matrix1: A
+ * matrix2: B
+ * result_matrix: C
+ */
 class MatrixMultiplication {
 public:
   enum MatrixOp {NoTranspose, MatrixTranspose};
   
-  MatrixMultiplication(Data* matrix1, Data* matrix2, Data* result_matrix);
-  
-  MatrixMultiplication(Data* matrix1, MatrixMultiplication::MatrixOp matrix1_transpose,
-                       Data* matrix2, MatrixMultiplication::MatrixOp matrix2_transpose,
-                       Data* result_matrix);
+  MatrixMultiplication(Data* matrix1, Data* matrix2, Data* result_matrix,
+                       MatrixMultiplication::MatrixOp matrix1_transpose = NoTranspose,
+                       MatrixMultiplication::MatrixOp matrix2_transpose = NoTranspose,
+                       double alpha = 1.0,
+                       double beta = 0.0);
   
   void check_dimensions();
   
@@ -31,20 +37,24 @@ protected:
   MatrixMultiplication::MatrixOp m_matrix1_transpose;
   MatrixMultiplication::MatrixOp m_matrix2_transpose;
   Data* m_result_matrix;
+  double m_alpha;
+  double m_beta;
 };
 
 class MatrixMultiplicationBasic : public MatrixMultiplication {
 public:
-  MatrixMultiplicationBasic(Data* matrix1, Data* matrix2, Data* result_matrix)
-    : MatrixMultiplication(matrix1, matrix2, result_matrix) {};
-  
-  MatrixMultiplicationBasic(Data* matrix1, MatrixMultiplication::MatrixOp matrix1_transpose,
-                            Data* matrix2, MatrixMultiplication::MatrixOp matrix2_transpose,
-                            Data* result_matrix) : MatrixMultiplication(matrix1,
-                                                                        matrix1_transpose,
-                                                                        matrix2,
-                                                                        matrix2_transpose,
-                                                                        result_matrix) {};
+
+  MatrixMultiplicationBasic(Data* matrix1, Data* matrix2, Data* result_matrix,
+                       MatrixMultiplication::MatrixOp matrix1_transpose = NoTranspose,
+                       MatrixMultiplication::MatrixOp matrix2_transpose = NoTranspose,
+                       double alpha = 1.0,
+                       double beta = 0.0) : MatrixMultiplication(matrix1,
+                                                                  matrix2,
+                                                                  result_matrix,
+                                                                  matrix1_transpose,
+                                                                  matrix2_transpose,
+                                                                  alpha,
+                                                                  beta) {};
   virtual void execute();
 private:
   
@@ -52,16 +62,18 @@ private:
 
 class MatrixMultiplicationMKL :  public MatrixMultiplication {
 public:
-  MatrixMultiplicationMKL(Data* matrix1, Data* matrix2, Data* result_matrix)
-    : MatrixMultiplication(matrix1, matrix2, result_matrix) {};
   
-  MatrixMultiplicationMKL(Data* matrix1, MatrixMultiplication::MatrixOp matrix1_transpose,
-                          Data* matrix2, MatrixMultiplication::MatrixOp matrix2_transpose,
-                          Data* result_matrix) : MatrixMultiplication(matrix1,
-                                                                      matrix1_transpose,
+  MatrixMultiplicationMKL(Data* matrix1, Data* matrix2, Data* result_matrix,
+                            MatrixMultiplication::MatrixOp matrix1_transpose = NoTranspose,
+                            MatrixMultiplication::MatrixOp matrix2_transpose = NoTranspose,
+                            double alpha = 1.0,
+                            double beta = 0.0) : MatrixMultiplication(matrix1,
                                                                       matrix2,
+                                                                      result_matrix,
+                                                                      matrix1_transpose,
                                                                       matrix2_transpose,
-                                                                      result_matrix) {};
+                                                                      alpha,
+                                                                      beta) {};
   
   virtual void execute();
   

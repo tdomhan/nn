@@ -33,7 +33,7 @@ public:
   virtual void backward();
   
   //update the weights
-  virtual void update();
+  virtual void update(double learning_rate);
   
   //output off this layer afer the forward pass
   virtual Data* get_output();
@@ -46,8 +46,12 @@ private:
   int m_num_hidden;
   Data* m_weights;
   Data* m_weights_update;
+
   Data* m_bias;
   Data* m_bias_update;
+  
+  Data* m_batch_average_vector;
+
   Data* m_output;
   Data* m_backprop_error;
   UnaryMathOp const* m_initialize;

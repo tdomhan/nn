@@ -48,6 +48,8 @@ void LinearLayer::setup() {
   m_bias_update = new DataCPU(1, m_num_hidden);
   m_initialize->execute(m_bias);
   
+  m_batch_average_vector = new DataCPU(1, get_bottom_layer()->get_output_size(0));
+  
   m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
                          m_num_hidden);
   //provide the error to the layer below
@@ -103,30 +105,38 @@ void LinearLayer::backward() {
 
   //gradient given weights
   //TODO: multiply by 1/num_batches to get the average over batches
+  double batch_average = 1. / get_bottom_layer()->get_output_size(0);
   MatrixMultiplicationMKL calculate_weight_gradient(out_bottom,
-                                          MatrixMultiplication::MatrixOp::MatrixTranspose,
-                                          backprop_error_top,
-                                          MatrixMultiplication::MatrixOp::MatrixTranspose,
-                                          m_weights_update);
+                                                    backprop_error_top,
+                                                    m_weights_update,
+                                                    MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                                    MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                                    batch_average);
   calculate_weight_gradient.execute();
 
-  //TODO: gradient given the bias
-  MatrixMultiplicationMKL calculate_bias_gradient(out_bottom,
-                                                  MatrixMultiplication::MatrixOp::MatrixTranspose,
+  //gradient given the bias
+  SetConst(1.).execute(m_bias_update);
+  MatrixMultiplicationMKL calculate_bias_gradient(m_batch_average_vector,
                                                   backprop_error_top,
-                                                  MatrixMultiplication::MatrixOp::MatrixTranspose,
-                                                  m_weights_update);
+                                                  m_bias_update,
+                                                  MatrixMultiplication::MatrixOp::NoTranspose,
+                                                  MatrixMultiplication::MatrixOp::NoTranspose,
+                                                  batch_average);
   calculate_bias_gradient.execute();
   
   
   //gradient given input from layer below
-  //TODO: do we need a factor?
   MatrixMultiplicationMKL calculate_error_given_input(backprop_error_top,
-                                                MatrixMultiplication::MatrixOp::NoTranspose,
-                                                m_weights,
-                                                MatrixMultiplication::MatrixOp::MatrixTranspose,
-                                                m_backprop_error);
+                                                      m_weights,
+                                                      m_backprop_error,
+                                                      MatrixMultiplication::MatrixOp::NoTranspose,
+                                                      MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                                      batch_average);
   calculate_error_given_input.execute();
+}
+
+void LinearLayer::update(double learning_rate) {
+  
 }
 
 
