@@ -104,7 +104,6 @@ void LinearLayer::backward() {
   Data* out_bottom = get_bottom_layer()->get_output();
 
   //gradient given weights
-  //TODO: multiply by 1/num_batches to get the average over batches
   double batch_average = 1. / get_bottom_layer()->get_output_size(0);
   MatrixMultiplicationMKL calculate_weight_gradient(out_bottom,
                                                     backprop_error_top,
@@ -136,7 +135,9 @@ void LinearLayer::backward() {
 }
 
 void LinearLayer::update(double learning_rate) {
-  
+  MatrixAdd apply_update(learning_rate);
+  apply_update.execute(m_weights, m_weights_update);
+  apply_update.execute(m_bias, m_bias_update);
 }
 
 

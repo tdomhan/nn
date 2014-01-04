@@ -135,6 +135,22 @@ public:
 private:
 };
 
+
+class MatrixAdd: public DualMathOp {
+public:
+  MatrixAdd() : m_factor(1.) {};
+  MatrixAdd(double factor) : m_factor(factor) {};
+  
+  /**
+   * A += factor * B
+   */
+  virtual void execute(Data* A, Data* B) const;
+  virtual ~MatrixAdd() {};
+private:
+  double m_factor;
+};
+
+
 /**
  * Adds a vector row by row
  */

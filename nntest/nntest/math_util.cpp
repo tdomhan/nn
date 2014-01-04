@@ -155,6 +155,17 @@ void SoftmaxRowByRow::execute(Data* matrix) const {
   }
 }
 
+void MatrixAdd::execute(Data* m1, Data* m2) const {
+  assert(m1->get_size_dim(0) == m2->get_size_dim(0));
+  assert(m1->get_size_dim(1) == m2->get_size_dim(1));
+  int num_rows = m1->get_size_dim(0);
+  int num_columns = m2->get_size_dim(1);
+  for (int row_id=0; row_id < num_rows; row_id++) {
+    for (int column_id=0; column_id < num_columns; column_id++) {
+      m1->get_data()[m1->get_index(row_id, column_id)] += m_factor * m2->get_data_at(row_id, column_id);
+    }
+  }
+}
 
 void PlusEqualRow::execute(Data* matrix, Data* row) const {
   //make sure row is a vector
