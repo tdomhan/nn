@@ -36,6 +36,7 @@ void SoftMaxLayer::forward() {
 
 // the error
 void SoftMaxLayer::backward() {
+  // d/dx softmax(x_i) = 1 - p(x_i)
   
 }
 

@@ -13,13 +13,23 @@
 
 class MatrixMultiplication {
 public:
+  enum MatrixOp {NoTranspose, MatrixTranspose};
+  
   MatrixMultiplication(Data* matrix1, Data* matrix2, Data* result_matrix);
+  
+  MatrixMultiplication(Data* matrix1, MatrixMultiplication::MatrixOp matrix1_transpose,
+                       Data* matrix2, MatrixMultiplication::MatrixOp matrix2_transpose,
+                       Data* result_matrix);
+  
+  void check_dimensions();
   
   virtual void execute() = 0;
   
 protected:
   Data* m_matrix1;
   Data* m_matrix2;
+  MatrixMultiplication::MatrixOp m_matrix1_transpose;
+  MatrixMultiplication::MatrixOp m_matrix2_transpose;
   Data* m_result_matrix;
 };
 
@@ -28,6 +38,13 @@ public:
   MatrixMultiplicationBasic(Data* matrix1, Data* matrix2, Data* result_matrix)
     : MatrixMultiplication(matrix1, matrix2, result_matrix) {};
   
+  MatrixMultiplicationBasic(Data* matrix1, MatrixMultiplication::MatrixOp matrix1_transpose,
+                            Data* matrix2, MatrixMultiplication::MatrixOp matrix2_transpose,
+                            Data* result_matrix) : MatrixMultiplication(matrix1,
+                                                                        matrix1_transpose,
+                                                                        matrix2,
+                                                                        matrix2_transpose,
+                                                                        result_matrix) {};
   virtual void execute();
 private:
   
@@ -37,7 +54,18 @@ class MatrixMultiplicationMKL :  public MatrixMultiplication {
 public:
   MatrixMultiplicationMKL(Data* matrix1, Data* matrix2, Data* result_matrix)
     : MatrixMultiplication(matrix1, matrix2, result_matrix) {};
+  
+  MatrixMultiplicationMKL(Data* matrix1, MatrixMultiplication::MatrixOp matrix1_transpose,
+                          Data* matrix2, MatrixMultiplication::MatrixOp matrix2_transpose,
+                          Data* result_matrix) : MatrixMultiplication(matrix1,
+                                                                      matrix1_transpose,
+                                                                      matrix2,
+                                                                      matrix2_transpose,
+                                                                      result_matrix) {};
+  
   virtual void execute();
+  
+
 private:
 };
 
@@ -103,6 +131,15 @@ public:
   virtual void execute(Data* matrix, Data* row) const;
   virtual ~PlusEqualRow() {};
 private:
+};
+
+class AllNegativeZeroMasked : public DualMathOp {
+public:
+  AllNegativeZeroMasked() {};
+  
+  virtual void execute(Data* matrix, Data* mask) const;
+private:
+  double m_value;
 };
 
 #endif

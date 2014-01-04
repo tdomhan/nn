@@ -33,8 +33,39 @@ void test_matrix_multiplication() {
   mm.execute();
   std::cout << "result" << std::endl;
   result.print();
-  assert(result.get_data()[0] - (1*1+2*5) < EPS);
-  assert(result.get_data()[result.get_count()-1] - (7*4 + 8*8) < EPS);
+  assert(fabs(result.get_data()[0] - (1*1+2*5)) < EPS);
+  assert(fabs(result.get_data()[result.get_count()-1] - (7*4 + 8*8)) < EPS);
+}
+
+void test_matrix_multiplication_transpose() {
+  std::cout << "Matrix transposes test:" << std::endl;
+  /*
+    Multiplying by hand:
+              1   5
+              2   6
+              3   7
+              4   8
+   
+    1 3 5 7  50 114
+    2 4 6 8  60 140
+   */
+  double d1[4][2] = {{1,2},{3,4},{5,6},{7,8}};
+  double d2[2][4] = {{1,2,3,4},{5,6,7,8}};
+  DataCPU m1(4,2, (double*)d1);
+  DataCPU m2(2,4, (double*)d2);
+  std::cout << "m1" << std::endl;
+  m1.print();
+  std::cout << "m2" << std::endl;
+  m2.print();
+  DataCPU result(2,2);
+  MatrixMultiplicationMKL mm(&m1, MatrixMultiplication::MatrixOp::MatrixTranspose,
+                             &m2, MatrixMultiplication::MatrixOp::MatrixTranspose,
+                             &result);
+  mm.execute();
+  std::cout << "result" << std::endl;
+  result.print();
+  assert(fabs(result.get_data()[0] - (1*1+3*2+5*3+7*4)) < EPS);
+  assert(fabs(result.get_data()[result.get_count()-1] - (2*5+4*6+6*7+8*8)) < EPS);
 }
 
 
@@ -84,14 +115,10 @@ void test_linear_layer() {
   
   
   Data* output = linear_layer->get_output();
-    std::cout << "linear layer out begind" << std::endl;
-  output->print();
-    std::cout << "linear layer out end" << std::endl;
   int out_size_dim0 = linear_layer->get_output_size(0);
   int out_size_dim1 = linear_layer->get_output_size(1);
   for (int i=0; i<out_size_dim0; i++) {
     for (int j=0; j<out_size_dim1; j++) {
-      std::cout << output->get_data()[output->get_index(i,j)] << std::endl;
       assert(output->get_data()[output->get_index(i,j)] == input_dim + 1);
     }
   }
@@ -107,30 +134,14 @@ void test_relu_layer() {
   int input_dim = 2;
   double d_in[2][2] = {{1,-2},{0,5}};
   double d_out_expected[2][2] = {{1,0},{0,5}};
-  Data* data = new DataCPU(num_samples, input_dim, (double*)d_in);
+  Data* data_input = new DataCPU(num_samples, input_dim, (double*)d_in);
+  Data* data_expected_output = new DataCPU(num_samples, input_dim, (double*)d_out_expected);
   
-  DataLayer* data_layer = new DataLayer(data, num_samples);
-  data_layer->connect_top(relu_layer);
-  relu_layer->connect_bottom(data_layer);
-  
-  data_layer->setup();
-  relu_layer->setup();
-  
-  data_layer->forward();
-  relu_layer->forward();
-  
-  Data* output = relu_layer->get_output();
-  
-  int out_size_dim0 = relu_layer->get_output_size(0);
-  int out_size_dim1 = relu_layer->get_output_size(1);
-  for (int i=0; i<out_size_dim0; i++) {
-    for (int j=0; j<out_size_dim1; j++) {
-      assert((output->get_data_at(i, j) - d_out_expected[i][j]) < EPS);
-    }
-  }
+  test_layer(relu_layer, data_input, data_expected_output);
   
   delete relu_layer;
-  delete data_layer;
+  delete data_input;
+  delete data_expected_output;
   std::cout << "Completed relu layer test" << std::endl;
 }
 
@@ -197,6 +208,8 @@ void run_example() {
 int main(int argc, const char * argv[])
 {
   test_matrix_multiplication();
+  test_matrix_multiplication_transpose();
+
   test_linear_layer();
   test_relu_layer();
   test_softmax_layer();

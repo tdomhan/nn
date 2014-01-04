@@ -36,25 +36,35 @@ LinearLayer::~LinearLayer() {
 }
 
 void LinearLayer::setup() {
-  if(!has_bottom_layer()) {
-    return;
-  }
-  m_weights = new DataCPU(get_bottom_layer()->get_output_size(1), m_num_hidden);
+  assert(has_bottom_layer());
+
+  m_weights = new DataCPU(get_bottom_layer()->get_output_size(1),
+                          m_num_hidden);
+  m_weights_update = new DataCPU(m_weights->get_size_dim(0),
+                                 m_weights->get_size_dim(1));
   m_initialize->execute(m_weights);
+  
   m_bias = new DataCPU(1, m_num_hidden);
+  m_bias_update = new DataCPU(1, m_num_hidden);
   m_initialize->execute(m_bias);
-  m_output = new DataCPU(get_bottom_layer()->get_output_size(0), m_num_hidden);
+  
+  m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
+                         m_num_hidden);
+  //provide the error to the layer below
+  m_backprop_error = new DataCPU(get_bottom_layer()->get_output_size(0),
+                                 get_bottom_layer()->get_output_size(1));
 }
 
 //Forward pass
 void LinearLayer::forward() {
-  if(!has_bottom_layer()) {
-    return;
-  }
+  assert(has_bottom_layer());
   Data* out_bottom = get_bottom_layer()->get_output();
-  std::cout << "bottom begin" << std::endl;
-  out_bottom->print();
-  std::cout << "bottom end" << std::endl;
+//  std::cout << "bottom begin" << std::endl;
+//  out_bottom->print();
+//  std::cout << "bottom end" << std::endl;
+  //TODO: do multiplication in one GEMM step?
+
+  //linear combination of the inputs
   MatrixMultiplicationMKL matrix_multiplication(
                                              out_bottom,
                                              m_weights,
@@ -65,8 +75,58 @@ void LinearLayer::forward() {
 }
 
 
+/*
+ * m: num_batches
+ * n: data dimension
+ * k: num_units
+ 
+ * D_IN: m x n
+ * W: n x k
+ * b: 1 x k
+ * D_OUT: m x k
+ * ERR_TOP: m x k
+ * ERR_OUT: m x n
+
+ * f(x)  = D_IN*W
+ * f'(x)/d in = ERR_TOP * W^T =
+ * f'(x)/d w_ij = in_i * top_diff_j
+ * f'(x)/d b_j  =
+ */
 void LinearLayer::backward() {
+  assert(has_top_layer());
+
+  //m x k
+  Data* backprop_error_top = get_top_layer()->get_backprop_error();
   
+  // m x n
+  Data* out_bottom = get_bottom_layer()->get_output();
+
+  //gradient given weights
+  //TODO: multiply by 1/num_batches to get the average over batches
+  MatrixMultiplicationMKL calculate_weight_gradient(out_bottom,
+                                          MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                          backprop_error_top,
+                                          MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                          m_weights_update);
+  calculate_weight_gradient.execute();
+
+  //TODO: gradient given the bias
+  MatrixMultiplicationMKL calculate_bias_gradient(out_bottom,
+                                                  MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                                  backprop_error_top,
+                                                  MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                                  m_weights_update);
+  calculate_bias_gradient.execute();
+  
+  
+  //gradient given input from layer below
+  //TODO: do we need a factor?
+  MatrixMultiplicationMKL calculate_error_given_input(backprop_error_top,
+                                                MatrixMultiplication::MatrixOp::NoTranspose,
+                                                m_weights,
+                                                MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                                m_backprop_error);
+  calculate_error_given_input.execute();
 }
 
 

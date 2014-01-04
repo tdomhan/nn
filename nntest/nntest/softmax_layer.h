@@ -34,6 +34,8 @@ public:
   //output off this layer afer the forward pass
   virtual Data* get_output();
   
+  virtual Data* get_backprop_error() {return NULL;};
+  
   virtual int get_output_size(int dimension);
   
 private:

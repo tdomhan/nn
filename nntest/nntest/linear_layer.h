@@ -13,6 +13,9 @@
 #include "math_util.h"
 #include "data.h"
 
+
+//TODO: make bias optional
+
 class LinearLayer : public Layer {
 public:
   LinearLayer(int num_hidden);
@@ -29,16 +32,24 @@ public:
   // the error
   virtual void backward();
   
+  //update the weights
+  virtual void update();
+  
   //output off this layer afer the forward pass
   virtual Data* get_output();
+  
+  virtual Data* get_backprop_error() {return NULL;};
   
   virtual int get_output_size(int dimension);
   
 private:
   int m_num_hidden;
   Data* m_weights;
+  Data* m_weights_update;
   Data* m_bias;
+  Data* m_bias_update;
   Data* m_output;
+  Data* m_backprop_error;
   UnaryMathOp const* m_initialize;
 };
 

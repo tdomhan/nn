@@ -27,6 +27,8 @@ public:
   
   virtual Data* get_output();
   
+  virtual Data* get_backprop_error() {return NULL;};
+  
   virtual int get_output_size(int dimension);
   
   void next_batch();

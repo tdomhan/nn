@@ -12,6 +12,10 @@
 
 #include "data_cpu.h"
 
+/*
+ TODO: move the iteration over the dataset outside of the layer into a separate object.
+ */
+
 DataLayer::DataLayer(Data* dataset, int batch_size)
   : m_dataset(dataset),
   m_batch_size(batch_size),
@@ -39,7 +43,11 @@ Data* DataLayer::get_output() {
 }
 
 int DataLayer::get_output_size(int dim) {
-  return m_dataset->get_size_dim(dim);
+  if(dim == 0) {
+    return m_batch_size;
+  } else {
+    return m_dataset->get_size_dim(dim);
+  }
 }
 
 void DataLayer::next_batch() {
