@@ -14,11 +14,11 @@
 class DataCPU : public Data {
 public:
   
-  DataCPU(int size_dim0, int size_dim1);
-  DataCPU(int size_dim0, int size_dim1, double* data);
+  DataCPU(long size_dim0, long size_dim1);
+  DataCPU(long size_dim0, long size_dim1, double* data);
   ~DataCPU();
   
-  virtual Data* get_rows_slice(int start, int end);
+  virtual Data* get_rows_slice(long start, long end);
   
   virtual double* get_data() const {return m_data; };
   

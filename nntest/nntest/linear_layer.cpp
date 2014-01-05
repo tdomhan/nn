@@ -159,7 +159,7 @@ Data* LinearLayer::get_output() {
 }
 
 int LinearLayer::get_output_size(int dimension) {
-  return m_output->get_size_dim(dimension);
+  return (int)m_output->get_size_dim(dimension);
 }
 
 

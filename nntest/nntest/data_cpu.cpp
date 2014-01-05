@@ -16,7 +16,7 @@
 #include <iostream>
 
 
-DataCPU::DataCPU(int size_dim0, int size_dim1, double* data) :
+DataCPU::DataCPU(long size_dim0, long size_dim1, double* data) :
   Data(size_dim0, size_dim1),
   m_data(data),
   m_owns_data(false)
@@ -24,7 +24,7 @@ DataCPU::DataCPU(int size_dim0, int size_dim1, double* data) :
   
 }
 
-DataCPU::DataCPU(int size_dim0, int size_dim1)
+DataCPU::DataCPU(long size_dim0, long size_dim1)
   : Data(size_dim0, size_dim1), m_owns_data(true) {
     m_data = (double *)mkl_malloc( get_count()*sizeof( double ), 64 );
 }
@@ -36,8 +36,8 @@ DataCPU::~DataCPU() {
 }
 
 
-Data* DataCPU::get_rows_slice(int start, int end) {
-  int dim0 = end-start;
+Data* DataCPU::get_rows_slice(long start, long end) {
+  long dim0 = end-start;
   Data* ret = new DataCPU(dim0, get_size_dim(1), &m_data[start*get_size_dim(1)]);
   return ret;
 }

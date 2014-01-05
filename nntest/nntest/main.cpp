@@ -17,6 +17,8 @@
 #include "relu_layer.h"
 #include "softmax_layer.h"
 
+#include "dataset_cifar10.h"
+
 #define EPS 0.0001
 
 void test_matrix_multiplication() {
@@ -169,6 +171,9 @@ void run_example() {
   int input_dim = 5;
   int batch_size = 10;
   int num_out = 15;
+  
+  DataSet* dataset = new DataSetCIFAR10("/Users/tdomhan/Projects/nntest/data/cifar-10-batches-bin/data_batch_1.bin", batch_size);
+  
   Data* labels = new DataCPU(batch_size, num_out);
   Data* data = new DataCPU(num_samples, input_dim);
   double* d = data->get_data();

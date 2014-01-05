@@ -32,7 +32,7 @@ MatrixMultiplication::MatrixMultiplication(Data* matrix1, Data* matrix2, Data* r
 }
 
 void MatrixMultiplication::check_dimensions() {
-  int m1_d0, m1_d1, m2_d0, m2_d1, r_d0, r_d1;
+  long m1_d0, m1_d1, m2_d0, m2_d1, r_d0, r_d1;
   if(m_matrix1_transpose == NoTranspose) {
     m1_d0 = m_matrix1->get_size_dim(0);
     m1_d1 = m_matrix1->get_size_dim(1);
@@ -56,10 +56,10 @@ void MatrixMultiplication::check_dimensions() {
 }
 
 void MatrixMultiplicationMKL::execute() {
-  int m1_d0 = m_matrix1->get_size_dim(0);
-  int m1_d1 = m_matrix1->get_size_dim(1);
-  int m2_d0 = m_matrix2->get_size_dim(0);
-  int m2_d1 = m_matrix2->get_size_dim(1);
+  int m1_d0 = (int) m_matrix1->get_size_dim(0);
+  int m1_d1 = (int) m_matrix1->get_size_dim(1);
+  int m2_d0 = (int) m_matrix2->get_size_dim(0);
+  int m2_d1 = (int) m_matrix2->get_size_dim(1);
   
   CBLAS_TRANSPOSE m1_transpose = (m_matrix1_transpose == NoTranspose) ? CblasNoTrans: CblasTrans;
   CBLAS_TRANSPOSE m2_transpose = (m_matrix2_transpose == NoTranspose) ? CblasNoTrans: CblasTrans;
@@ -91,8 +91,8 @@ void MatrixMultiplicationBasic::execute() {
 
 void UniformRandom::execute(Data* matrix) const {
   double* data = matrix->get_data();
-  int dim0 = matrix->get_size_dim(0);
-  int dim1 = matrix->get_size_dim(1);
+  long dim0 = matrix->get_size_dim(0);
+  long dim1 = matrix->get_size_dim(1);
   for (int i = 0; i<dim0; i++) {
     for (int j=0; j<dim1; j++) {
       data[matrix->get_index(i, j)] = m_max * rand()/float(RAND_MAX);
@@ -104,8 +104,8 @@ void UniformRandom::execute(Data* matrix) const {
 
 void SetConst::execute(Data* matrix) const {
   double* data = matrix->get_data();
-  int dim0 = matrix->get_size_dim(0);
-  int dim1 = matrix->get_size_dim(1);
+  long dim0 = matrix->get_size_dim(0);
+  long dim1 = matrix->get_size_dim(1);
   for (int i = 0; i<dim0; i++) {
     for (int j=0; j<dim1; j++) {
       data[matrix->get_index(i, j)] = m_value;
@@ -117,8 +117,8 @@ void SetConst::execute(Data* matrix) const {
 
 void AllNegativeZero::execute(Data* matrix) const{
   double* data = matrix->get_data();
-  int dim0 = matrix->get_size_dim(0);
-  int dim1 = matrix->get_size_dim(1);
+  long dim0 = matrix->get_size_dim(0);
+  long dim1 = matrix->get_size_dim(1);
   for (int i = 0; i<dim0; i++) {
     for (int j=0; j<dim1; j++) {
       double val = matrix->get_data_at(i, j);
@@ -129,8 +129,8 @@ void AllNegativeZero::execute(Data* matrix) const{
 
 void AllNegativeZeroMasked::execute(Data* matrix, Data* mask) const{
   double* data = matrix->get_data();
-  int dim0 = matrix->get_size_dim(0);
-  int dim1 = matrix->get_size_dim(1);
+  long dim0 = matrix->get_size_dim(0);
+  long dim1 = matrix->get_size_dim(1);
   for (int i = 0; i<dim0; i++) {
     for (int j=0; j<dim1; j++) {
       double val = matrix->get_data_at(i, j);
@@ -141,8 +141,8 @@ void AllNegativeZeroMasked::execute(Data* matrix, Data* mask) const{
 }
 
 void SoftmaxRowByRow::execute(Data* matrix) const {
-  int num_rows = matrix->get_size_dim(0);
-  int num_columns = matrix->get_size_dim(1);
+  long num_rows = matrix->get_size_dim(0);
+  long num_columns = matrix->get_size_dim(1);
   for (int row_id=0; row_id < num_rows; row_id++) {
     double row_sum = 0;
     for (int column_id=0; column_id < num_columns; column_id++) {
@@ -158,8 +158,8 @@ void SoftmaxRowByRow::execute(Data* matrix) const {
 void MatrixAdd::execute(Data* m1, Data* m2) const {
   assert(m1->get_size_dim(0) == m2->get_size_dim(0));
   assert(m1->get_size_dim(1) == m2->get_size_dim(1));
-  int num_rows = m1->get_size_dim(0);
-  int num_columns = m2->get_size_dim(1);
+  long num_rows = m1->get_size_dim(0);
+  long num_columns = m2->get_size_dim(1);
   for (int row_id=0; row_id < num_rows; row_id++) {
     for (int column_id=0; column_id < num_columns; column_id++) {
       m1->get_data()[m1->get_index(row_id, column_id)] += m_factor * m2->get_data_at(row_id, column_id);
@@ -173,8 +173,8 @@ void PlusEqualRow::execute(Data* matrix, Data* row) const {
   //make sure the number of columns matche
   assert(row->get_size_dim(1) == matrix->get_size_dim(1));
   
-  int num_rows = matrix->get_size_dim(0);
-  int num_columns = matrix->get_size_dim(1);
+  long num_rows = matrix->get_size_dim(0);
+  long num_columns = matrix->get_size_dim(1);
   for (int row_id=0; row_id < num_rows; row_id++) {
     for (int column_id=0; column_id < num_columns; column_id++) {
       matrix->get_data()[matrix->get_index(row_id, column_id)] += row->get_data_at(0, column_id);
