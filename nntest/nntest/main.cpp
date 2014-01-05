@@ -167,6 +167,9 @@ void test_softmax_layer() {
 void run_example() {
   int num_samples = 100;
   int input_dim = 5;
+  int batch_size = 10;
+  int num_out = 15;
+  Data* labels = new DataCPU(batch_size, num_out);
   Data* data = new DataCPU(num_samples, input_dim);
   double* d = data->get_data();
   for(int i=0;i<num_samples;i++) {
@@ -174,26 +177,35 @@ void run_example() {
       d[i*input_dim+j] = i;
     }
   }
-  DataLayer* data_layer = new DataLayer(data, 10);
+  DataLayer* data_layer = new DataLayer(data, batch_size);
   
-  LinearLayer* linear_layer = new LinearLayer(15);
+  LinearLayer* linear_layer = new LinearLayer(num_out);
   
+  SoftMaxLayer* softmax_layer = new SoftMaxLayer();
+
+  //connect the layers
   data_layer->connect_top(linear_layer);
+
   linear_layer->connect_bottom(data_layer);
+  
+  softmax_layer->connect_bottom(linear_layer);
+  linear_layer->connect_top(softmax_layer);
   
   data_layer->setup();
   linear_layer->setup();
+  softmax_layer->setup();
   
-  data_layer->forward();
-  linear_layer->forward();
-  
-  linear_layer->get_output()->print();
-  
-  std::cout << "done1" << std::endl;
+  softmax_layer->set_labels(labels);
   
   while(data_layer->batches_remaining()){
     data_layer->forward();
     linear_layer->forward();
+    softmax_layer->forward();
+    
+    softmax_layer->backward();
+    linear_layer->backward();
+    
+    linear_layer->update(0.005);
     
     std::cout << "batch" << std::endl;
     data_layer->next_batch();
@@ -202,6 +214,8 @@ void run_example() {
   std::cout << "done" << std::endl;
   delete linear_layer;
   delete data_layer;
+  delete softmax_layer;
+
   delete data;
 }
 

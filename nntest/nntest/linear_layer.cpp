@@ -148,7 +148,7 @@ void LinearLayer::backward() {
 }
 
 void LinearLayer::update(double learning_rate) {
-  MatrixAdd apply_update(learning_rate);
+  MatrixAdd apply_update(-1*learning_rate);
   apply_update.execute(m_weights, m_weights_update);
   apply_update.execute(m_bias, m_bias_update);
 }
@@ -159,7 +159,7 @@ Data* LinearLayer::get_output() {
 }
 
 int LinearLayer::get_output_size(int dimension) {
-  return m_num_hidden;
+  return m_output->get_size_dim(dimension);
 }
 
 

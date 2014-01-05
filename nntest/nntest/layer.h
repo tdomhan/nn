@@ -27,6 +27,8 @@ public:
   // the error
   virtual void backward() = 0;
   
+  virtual void update(double learning_rate) = 0;
+  
   //output off this layer afer the forward pass
   virtual Data* get_output() = 0;
   

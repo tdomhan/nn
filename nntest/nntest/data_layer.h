@@ -25,6 +25,8 @@ public:
   
   virtual void backward();
   
+  virtual void update(double learning_rate) {};
+
   virtual Data* get_output();
   
   virtual Data* get_backprop_error() {return NULL;};
