@@ -106,7 +106,7 @@ void LinearLayer::forward() {
  * f(x)  = D_IN*W
  * f'(x)/d in = ERR_TOP * W^T =
  * f'(x)/d w_ij = in_i * top_diff_j
- * f'(x)/d b_j  =
+ * f'(x)/d b_j  = error_j
  */
 void LinearLayer::backward() {
   assert(has_top_layer());
@@ -123,7 +123,7 @@ void LinearLayer::backward() {
                                                     backprop_error_top,
                                                     m_weights_update,
                                                     MatrixMultiplication::MatrixOp::MatrixTranspose,
-                                                    MatrixMultiplication::MatrixOp::MatrixTranspose,
+                                                    MatrixMultiplication::MatrixOp::NoTranspose,
                                                     batch_average);
   calculate_weight_gradient.execute();
 
