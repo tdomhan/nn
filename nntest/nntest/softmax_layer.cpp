@@ -13,18 +13,22 @@
 #include "data_cpu.h"
 
 
-SoftMaxLayer::SoftMaxLayer() {
+SoftMaxLayer::SoftMaxLayer() : m_labels(NULL) {
 }
 
 SoftMaxLayer::~SoftMaxLayer() {
   delete m_output;
+  delete m_backprop_error;
 }
 
 void SoftMaxLayer::setup() {
   //won't work without a layer below
   assert(has_bottom_layer());
   
-  m_output = new DataCPU(get_bottom_layer()->get_output_size(0), get_bottom_layer()->get_output_size(1));
+  m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
+                         get_bottom_layer()->get_output_size(1));
+  m_backprop_error = new DataCPU(get_bottom_layer()->get_output_size(0),
+                                 get_bottom_layer()->get_output_size(1));
 }
 
 //Forward pass
@@ -35,9 +39,16 @@ void SoftMaxLayer::forward() {
 }
 
 // the error
+// d/dx softmax(x_i) = [label_i == 1] - p(x_i)
+// cost function: NLL
+// L = - 1/m forall i [label_i == 1] - p(x_i)
 void SoftMaxLayer::backward() {
-  // d/dx softmax(x_i) = 1 - p(x_i)
+  assert(m_labels);
+  //TODO: check that m_labels is in one-hot encoding
   
+  m_backprop_error->copy_from(*m_output);
+  MatrixAdd(-1).execute(m_backprop_error, m_labels);
+  //TODO: show we return the loss for each batch separately or just reduce it to the average?.
 }
 
 //output off this layer after the forward pass
@@ -47,4 +58,11 @@ Data* SoftMaxLayer::get_output() {
 
 int SoftMaxLayer::get_output_size(int dimension) {
   return get_bottom_layer()->get_output_size(dimension);
+}
+
+void SoftMaxLayer::set_labels(Data* labels) {
+  assert(labels->get_size_dim(0) == m_output->get_size_dim(0));
+  assert(labels->get_size_dim(1) == m_output->get_size_dim(1));
+  
+  m_labels = labels;
 }

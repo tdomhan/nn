@@ -16,6 +16,7 @@
 /**
  * Apply the softmax function.
  * f(x) = exp(a_i) / sum(exp(a_j), 0, num_input)
+ * And backpropagates the Negative Log Likelihood given the true labels.
  */
 class SoftMaxLayer : public Layer {
 public:
@@ -34,12 +35,18 @@ public:
   //output off this layer afer the forward pass
   virtual Data* get_output();
   
-  virtual Data* get_backprop_error() {return NULL;};
+  virtual Data* get_backprop_error() {return m_backprop_error;};
   
   virtual int get_output_size(int dimension);
   
+  //labels in one-hot encoding
+  void set_labels(Data* labels);
+  
 private:
   Data* m_output;
+  Data* m_backprop_error;
+
+  Data* m_labels;
 };
 
 #endif /* defined(__nntest__softmax_layer__) */

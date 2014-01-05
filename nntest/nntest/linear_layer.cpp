@@ -29,32 +29,46 @@ LinearLayer::LinearLayer(int num_hidden, UnaryMathOp const* initialize)
 }
 
 LinearLayer::~LinearLayer() {
-  delete m_initialize;
   delete m_weights;
+  delete m_weights_update;
   delete m_bias;
+  delete m_bias_update;
+  delete m_batch_average_vector;
   delete m_output;
+  delete m_backprop_error;
+  delete m_initialize;
 }
 
 void LinearLayer::setup() {
   assert(has_bottom_layer());
+  
+  initialize_weights();
+  
+  initialize_bias();
+  
+  m_batch_average_vector = new DataCPU(1, get_bottom_layer()->get_output_size(0));
+  SetConst(1).execute(m_batch_average_vector);
+  
+  m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
+                         m_num_hidden);
+  
+  //provide the error to the layer below
+  m_backprop_error = new DataCPU(get_bottom_layer()->get_output_size(0),
+                                 get_bottom_layer()->get_output_size(1));
+}
 
+void LinearLayer::initialize_weights() {
   m_weights = new DataCPU(get_bottom_layer()->get_output_size(1),
                           m_num_hidden);
   m_weights_update = new DataCPU(m_weights->get_size_dim(0),
                                  m_weights->get_size_dim(1));
   m_initialize->execute(m_weights);
-  
+}
+
+void LinearLayer::initialize_bias() {
   m_bias = new DataCPU(1, m_num_hidden);
   m_bias_update = new DataCPU(1, m_num_hidden);
   m_initialize->execute(m_bias);
-  
-  m_batch_average_vector = new DataCPU(1, get_bottom_layer()->get_output_size(0));
-  
-  m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
-                         m_num_hidden);
-  //provide the error to the layer below
-  m_backprop_error = new DataCPU(get_bottom_layer()->get_output_size(0),
-                                 get_bottom_layer()->get_output_size(1));
 }
 
 //Forward pass
@@ -114,7 +128,6 @@ void LinearLayer::backward() {
   calculate_weight_gradient.execute();
 
   //gradient given the bias
-  SetConst(1.).execute(m_bias_update);
   MatrixMultiplicationMKL calculate_bias_gradient(m_batch_average_vector,
                                                   backprop_error_top,
                                                   m_bias_update,
