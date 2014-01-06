@@ -89,6 +89,40 @@ void MatrixMultiplicationBasic::execute() {
 };
 
 
+MatrixElementwiseMultiplication::MatrixElementwiseMultiplication(Data* matrix1, Data* matrix2, Data* result_matrix) :
+m_matrix1(matrix1),
+m_matrix2(matrix2),
+m_result_matrix(result_matrix)
+{
+  check_dimensions();
+}
+
+void MatrixElementwiseMultiplication::check_dimensions() {
+  long m1_d0 = m_matrix1->get_size_dim(0);
+  long m1_d1 = m_matrix1->get_size_dim(1);
+  long m2_d0 = m_matrix2->get_size_dim(0);
+  long m2_d1 = m_matrix2->get_size_dim(1);
+  long r_d0 = m_result_matrix->get_size_dim(0);
+  long r_d1 = m_result_matrix->get_size_dim(1);
+  
+  assert(m1_d0 == m2_d0);
+  assert(m2_d0 == r_d0);
+  assert(m1_d1 == m2_d1);
+  assert(m2_d1 == r_d1);
+}
+
+void MatrixElementwiseMultiplication::execute() {
+  long dim0 = m_matrix1->get_size_dim(0);
+  long dim1 = m_matrix1->get_size_dim(1);
+  for (int i = 0; i<dim0; i++) {
+    for (int j=0; j<dim1; j++) {
+      double val1 = m_matrix1->get_data_at(i, j);
+      double val2 = m_matrix1->get_data_at(i, j);
+      m_result_matrix->get_data()[m_result_matrix->get_index(i, j)] = val1*val2;
+    }
+  }
+}
+
 void UniformRandom::execute(Data* matrix) const {
   double* data = matrix->get_data();
   long dim0 = matrix->get_size_dim(0);
@@ -111,6 +145,18 @@ void SetConst::execute(Data* matrix) const {
       data[matrix->get_index(i, j)] = m_value;
       //std::cout << data[matrix->get_index(i, j)] << std::endl;
       //std::cout << i << " " << j << " "<< matrix->get_index(i, j) << std::endl;
+    }
+  }
+}
+
+void MatrixLog::execute(Data* matrix) const {
+  double* data = matrix->get_data();
+  long dim0 = matrix->get_size_dim(0);
+  long dim1 = matrix->get_size_dim(1);
+  for (int i = 0; i<dim0; i++) {
+    for (int j=0; j<dim1; j++) {
+      double value = matrix->get_data_at(i, j);
+      data[matrix->get_index(i, j)] = log(fmax(value,0.0001));
     }
   }
 }
@@ -182,3 +228,17 @@ void PlusEqualRow::execute(Data* matrix, Data* row) const {
   }
 }
 
+
+
+double MatrixSum::execute(Data* matrix) {
+  double sum = 0;
+  long dim0 = matrix->get_size_dim(0);
+  long dim1 = matrix->get_size_dim(1);
+  for (int i = 0; i<dim0; i++) {
+    for (int j=0; j<dim1; j++) {
+      double value = matrix->get_data_at(i, j);
+      sum += value;
+    }
+  }
+  return sum;
+}

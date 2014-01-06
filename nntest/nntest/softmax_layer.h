@@ -47,6 +47,8 @@ public:
 private:
   Data* m_output;
   Data* m_backprop_error;
+  
+  Data* m_total_loss;
 
   Data* m_labels;
 };

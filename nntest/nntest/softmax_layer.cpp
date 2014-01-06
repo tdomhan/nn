@@ -19,6 +19,7 @@ SoftMaxLayer::SoftMaxLayer() : m_labels(NULL) {
 SoftMaxLayer::~SoftMaxLayer() {
   delete m_output;
   delete m_backprop_error;
+  delete m_total_loss;
 }
 
 void SoftMaxLayer::setup() {
@@ -29,6 +30,9 @@ void SoftMaxLayer::setup() {
                          get_bottom_layer()->get_output_size(1));
   m_backprop_error = new DataCPU(get_bottom_layer()->get_output_size(0),
                                  get_bottom_layer()->get_output_size(1));
+  
+  m_total_loss = new DataCPU(get_bottom_layer()->get_output_size(0),
+                             get_bottom_layer()->get_output_size(1));
 }
 
 //Forward pass
@@ -49,6 +53,17 @@ void SoftMaxLayer::backward() {
   m_backprop_error->copy_from(*m_output);
   MatrixAdd(-1).execute(m_backprop_error, m_labels);
   //TODO: show we return the loss for each batch separately or just reduce it to the average?.
+  
+  m_total_loss->copy_from(*m_output);
+  MatrixLog().execute(m_total_loss);
+  
+  //mask to get only the probabilities of the true labels:
+  MatrixElementwiseMultiplication(m_total_loss, m_labels, m_total_loss).execute();
+  
+  long num_batches = m_output->get_size_dim(0);
+  double nll = -1./((float)num_batches)*MatrixSum().execute(m_total_loss);
+  
+  std::cout << "NLL: " << nll << std::endl;
 }
 
 //output off this layer after the forward pass

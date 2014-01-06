@@ -81,6 +81,23 @@ public:
 private:
 };
 
+
+class MatrixElementwiseMultiplication {
+public:
+  MatrixElementwiseMultiplication(Data* matrix1, Data* matrix2, Data* result_matrix);
+  
+  void check_dimensions();
+  
+  virtual void execute();
+  
+protected:
+  Data* m_matrix1;
+  Data* m_matrix2;
+  Data* m_result_matrix;
+};
+
+
+
 class UnaryMathOp {
 public:
   virtual void execute(Data* matrix) const = 0;
@@ -104,6 +121,14 @@ public:
   virtual void execute(Data* matrix) const;
 private:
   double m_value;
+};
+
+class MatrixLog : public UnaryMathOp {
+public:
+  MatrixLog() {};
+  
+  virtual void execute(Data* matrix) const;
+private:
 };
 
 class AllNegativeZero : public UnaryMathOp {
@@ -168,6 +193,14 @@ public:
   virtual void execute(Data* matrix, Data* mask) const;
 private:
   double m_value;
+};
+
+class MatrixSum {
+public:
+  MatrixSum() {};
+  
+  virtual double execute(Data* matrix);
+private:
 };
 
 #endif
