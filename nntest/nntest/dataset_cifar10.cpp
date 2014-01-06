@@ -21,6 +21,7 @@ using namespace std;
 DataSetCIFAR10::DataSetCIFAR10(const char* fname, int batch_size) :
  DataSet(batch_size) {
   read_file(fname);
+  setup();
 }
 
 
@@ -70,5 +71,5 @@ void DataSetCIFAR10::read_file(const char* fname) {
     
     row_index++;
   }
-  m_labels->get_rows_slice(0,11)->print();
+  //m_labels->get_rows_slice(0,11)->print();
 }

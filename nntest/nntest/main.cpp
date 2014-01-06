@@ -72,7 +72,8 @@ void test_matrix_multiplication_transpose() {
 
 
 void test_layer(Layer* layer, Data* input, Data* expected_output) {
-  DataLayer* data_layer = new DataLayer(input, input->get_size_dim(1));
+  DataLayer* data_layer = new DataLayer(input);
+
   data_layer->connect_top(layer);
   layer->connect_bottom(data_layer);
   
@@ -105,7 +106,8 @@ void test_linear_layer() {
   Data* data = new DataCPU(num_samples, input_dim);
   SetConst(1).execute(data);
   data->print();
-  DataLayer* data_layer = new DataLayer(data, num_samples);
+  DataLayer* data_layer = new DataLayer(data);
+  
   data_layer->connect_top(linear_layer);
   linear_layer->connect_bottom(data_layer);
   
@@ -167,22 +169,12 @@ void test_softmax_layer() {
 }
 
 void run_example() {
-  int num_samples = 100;
-  int input_dim = 5;
-  int batch_size = 10;
-  int num_out = 15;
+  int batch_size = 100;
+  int num_out = 10;
   
   DataSet* dataset = new DataSetCIFAR10("/Users/tdomhan/Projects/nntest/data/cifar-10-batches-bin/data_batch_1.bin", batch_size);
   
-  Data* labels = new DataCPU(batch_size, num_out);
-  Data* data = new DataCPU(num_samples, input_dim);
-  double* d = data->get_data();
-  for(int i=0;i<num_samples;i++) {
-    for(int j=0; j<input_dim; j++) {
-      d[i*input_dim+j] = i;
-    }
-  }
-  DataLayer* data_layer = new DataLayer(data, batch_size);
+  DataLayer* data_layer = new DataLayer(dataset->get_batch_data());
   
   LinearLayer* linear_layer = new LinearLayer(num_out);
   
@@ -200,20 +192,25 @@ void run_example() {
   linear_layer->setup();
   softmax_layer->setup();
   
-  softmax_layer->set_labels(labels);
-  
-  while(data_layer->batches_remaining()){
-    data_layer->forward();
-    linear_layer->forward();
-    softmax_layer->forward();
-    
-    softmax_layer->backward();
-    linear_layer->backward();
-    
-    linear_layer->update(0.005);
-    
-    std::cout << "batch" << std::endl;
-    data_layer->next_batch();
+  for(int epoch=0;epoch<100;epoch++) {
+    std::cout << "epoch" << std::endl;
+    dataset->reset();
+    while(dataset->batches_remaining()){
+      data_layer->set_current_output(dataset->get_batch_data());
+      softmax_layer->set_labels(dataset->get_batch_labels());
+      
+      data_layer->forward();
+      linear_layer->forward();
+      softmax_layer->forward();
+      
+      softmax_layer->backward();
+      linear_layer->backward();
+      
+      linear_layer->update(0.005);
+      
+      dataset->next_batch();
+      //std::cout << "batch" << std::endl;
+    }
   }
   
   std::cout << "done" << std::endl;
@@ -221,7 +218,7 @@ void run_example() {
   delete data_layer;
   delete softmax_layer;
 
-  delete data;
+  delete dataset;
 }
 
 int main(int argc, const char * argv[])

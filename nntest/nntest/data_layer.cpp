@@ -16,22 +16,16 @@
  TODO: move the iteration over the dataset outside of the layer into a separate object.
  */
 
-DataLayer::DataLayer(Data* dataset, int batch_size)
-  : m_dataset(dataset),
-  m_batch_size(batch_size),
-  m_current_pointer(0)
+
+DataLayer::DataLayer(Data* output)
+  : m_output(output)
 {
-  m_rows = dataset->get_size_dim(0);
-  m_output = new DataCPU(m_batch_size, m_dataset->get_size_dim(1));
 };
 
 void DataLayer::setup() {
 }
 
 void DataLayer::forward() {
-  Data* batch = m_dataset->get_rows_slice(m_current_pointer, m_current_pointer+m_batch_size);
-  m_output->copy_from(*batch);
-  delete batch;
 }
 
 void DataLayer::backward() {
@@ -42,18 +36,6 @@ Data* DataLayer::get_output() {
   return m_output;
 }
 
-int DataLayer::get_output_size(int dim) {
-  if(dim == 0) {
-    return m_batch_size;
-  } else {
-    return m_dataset->get_size_dim(dim);
-  }
-}
-
-void DataLayer::next_batch() {
-  m_current_pointer += m_batch_size;
-}
-
-bool DataLayer::batches_remaining() {
-  return m_current_pointer+m_batch_size < m_rows;
+void DataLayer::set_current_output(Data* output) {
+  m_output = output;
 }

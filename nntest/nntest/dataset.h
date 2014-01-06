@@ -17,7 +17,7 @@
 class DataSet {
 public:
   
-  DataSet(int batch_size) : m_batch_size(batch_size) {};
+  DataSet(int batch_size);
   /**
    data: m x n matrix, the input data
    label: m x l matrix, one-hot encoded labels
@@ -31,15 +31,21 @@ public:
   
   ~DataSet();
   
-  Data* get_batch_data();
+  Data* get_batch_data() {return current_batch_data;};
   
-  Data* get_batch_labels();
+  Data* get_batch_labels() {return current_batch_labels;};
   
   void next_batch();
   
   bool batches_remaining();
+  
+  void reset();
 
 protected:
+  void setup();
+  
+  void load_batch();
+  
   Data* m_data;
   Data* m_labels;
   
