@@ -10,6 +10,7 @@
 #define __nntest__softmax_layer__
 
 #include <iostream>
+#include <memory>
 
 #include "layer.h"
 
@@ -43,6 +44,9 @@ public:
   
   //labels in one-hot encoding
   void set_labels(Data* labels);
+  
+  //get predictions (in one-hot encoding)
+  std::unique_ptr<Data> get_predictions();
   
 private:
   Data* m_output;

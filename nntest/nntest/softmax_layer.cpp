@@ -8,7 +8,6 @@
 
 #include "softmax_layer.h"
 
-
 #include "math_util.h"
 #include "data_cpu.h"
 
@@ -80,4 +79,28 @@ void SoftMaxLayer::set_labels(Data* labels) {
   assert(labels->get_size_dim(1) == m_output->get_size_dim(1));
   
   m_labels = labels;
+}
+
+std::unique_ptr<Data> SoftMaxLayer::get_predictions() {
+  std::unique_ptr<Data> predictions(new DataCPU(m_output->get_size_dim(0),
+                                                m_output->get_size_dim(1)));
+  
+  SetConst(0).execute(predictions.get());
+  
+  long num_rows = m_output->get_size_dim(0);
+  long num_columns = m_output->get_size_dim(0);
+  for (long row=0; row<num_rows; row++) {
+    double max = -1.;
+    long max_col = -1;
+    for (long column=0; column<num_columns; column++) {
+      double val = predictions->get_data_at(row, column);
+      if (val > max) {
+        max = val;
+        max_col = column;
+      }
+    }
+    predictions->get_data()[predictions->get_index(row, max_col)] = 1;
+  }
+  
+  return predictions;
 }
