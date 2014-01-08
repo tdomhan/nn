@@ -19,7 +19,7 @@
  * f(x) = exp(a_i) / sum(exp(a_j), 0, num_input)
  * And backpropagates the Negative Log Likelihood given the true labels.
  */
-class SoftMaxLayer : public Layer {
+class SoftMaxLayer : public LossLayer {
 public:
   SoftMaxLayer();
   
@@ -33,6 +33,8 @@ public:
   // the error
   virtual void backward();
   
+  virtual double backward(Data* expected_output);
+  
   virtual void update(double learning_rate) {};
   
   //output off this layer afer the forward pass
@@ -42,9 +44,6 @@ public:
   
   virtual int get_output_size(int dimension);
   
-  //labels in one-hot encoding
-  void set_labels(Data* labels);
-  
   //get predictions (in one-hot encoding)
   std::unique_ptr<Data> get_predictions();
   
@@ -53,8 +52,6 @@ private:
   Data* m_backprop_error;
   
   Data* m_total_loss;
-
-  Data* m_labels;
 };
 
 #endif /* defined(__nntest__softmax_layer__) */

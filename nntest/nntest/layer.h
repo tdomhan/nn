@@ -49,5 +49,14 @@ private:
   bool m_has_top;
 };
 
+//like a layer, but also takes the expected output to calculate the loss
+class LossLayer : public Layer {
+public:
+
+  // the error
+  //returns: loss
+  virtual double backward(Data* expected_output) = 0;
+private:
+};
 
 #endif

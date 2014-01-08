@@ -203,4 +203,10 @@ public:
 private:
 };
 
+//takes a matrix of probabilities and returns the max-prob predictions in one-hot encoding
+class MaxProbabilityPrediction {
+public:
+  std::unique_ptr<Data> execute(Data* probabilities);
+};
+
 #endif

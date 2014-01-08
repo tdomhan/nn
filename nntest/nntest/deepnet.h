@@ -21,17 +21,15 @@ public:
   
   DeepNetwork(int batch_size, int data_dimension);
   
-  void set_input(Data* input);
-  
   std::unique_ptr<Data> get_output();
   
   //setup all the layers
   //must be called before using the network
   void setup();
   
-  void forward();
+  void forward(Data* input_data);
   
-  void backward();
+  void backward(Data* expected_output);
   
   void update(double learning_rate);
   

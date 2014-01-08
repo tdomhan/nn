@@ -8,11 +8,13 @@
 
 #include "softmax_layer.h"
 
+#include <exception>
+
 #include "math_util.h"
 #include "data_cpu.h"
 
 
-SoftMaxLayer::SoftMaxLayer() : m_labels(NULL) {
+SoftMaxLayer::SoftMaxLayer() {
 }
 
 SoftMaxLayer::~SoftMaxLayer() {
@@ -41,28 +43,33 @@ void SoftMaxLayer::forward() {
   SoftmaxRowByRow().execute(m_output);
 }
 
+
+void SoftMaxLayer::backward() {
+  throw std::runtime_error("not implemented");
+}
+
 // the error
 // d/dx softmax(x_i) = [label_i == 1] - p(x_i)
 // cost function: NLL
 // L = - 1/m forall i [label_i == 1] - p(x_i)
-void SoftMaxLayer::backward() {
-  assert(m_labels);
+double SoftMaxLayer::backward(Data* expected_output) {
   //TODO: check that m_labels is in one-hot encoding
   
   m_backprop_error->copy_from(*m_output);
-  MatrixAdd(-1).execute(m_backprop_error, m_labels);
+  MatrixAdd(-1).execute(m_backprop_error, expected_output);
   //TODO: show we return the loss for each batch separately or just reduce it to the average?.
   
   m_total_loss->copy_from(*m_output);
   MatrixLog().execute(m_total_loss);
   
   //mask to get only the probabilities of the true labels:
-  MatrixElementwiseMultiplication(m_total_loss, m_labels, m_total_loss).execute();
+  MatrixElementwiseMultiplication(m_total_loss, expected_output, m_total_loss).execute();
   
   long num_batches = m_output->get_size_dim(0);
   double nll = -1./((float)num_batches)*MatrixSum().execute(m_total_loss);
   
   std::cout << "NLL: " << nll << std::endl;
+  return nll;
 }
 
 //output off this layer after the forward pass
@@ -72,13 +79,6 @@ Data* SoftMaxLayer::get_output() {
 
 int SoftMaxLayer::get_output_size(int dimension) {
   return get_bottom_layer()->get_output_size(dimension);
-}
-
-void SoftMaxLayer::set_labels(Data* labels) {
-  assert(labels->get_size_dim(0) == m_output->get_size_dim(0));
-  assert(labels->get_size_dim(1) == m_output->get_size_dim(1));
-  
-  m_labels = labels;
 }
 
 std::unique_ptr<Data> SoftMaxLayer::get_predictions() {

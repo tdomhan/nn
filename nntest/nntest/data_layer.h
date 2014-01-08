@@ -31,14 +31,14 @@ public:
 
   virtual Data* get_output();
   
-  virtual Data* get_backprop_error() {return NULL;};
+  virtual Data* get_backprop_error() {return m_data;};
   
   virtual int get_output_size(int dimension) {return output_size[dimension];};
   
   void set_current_data(Data* output);
   
 private:
-  Data* m_output;
+  Data* m_data;
   int output_size[2];
 };
 

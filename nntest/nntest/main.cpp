@@ -19,6 +19,7 @@
 #include "relu_layer.h"
 #include "softmax_layer.h"
 #include "deepnet.h"
+#include "math_util.h"
 
 #include "dataset_cifar10.h"
 
@@ -205,12 +206,14 @@ void run_example() {
     dataset->reset();
     while(dataset->batches_remaining()){
       
-      network->set_input(dataset->get_batch_data());
+      network->forward(dataset->get_batch_data());
+      //TODO: add DataLayer on top, for the expected output
+      //TODO: change the softmax layer to expect the top layer to backpropagate the expected labels in one-hot encoding
+      network->backward(dataset->get_batch_labels());
       
-      network->forward();
-      network->backward();
+      std::unique_ptr<Data> probabilities = network->get_output();
+      std::unique_ptr<Data> predictions = MaxProbabilityPrediction().execute(probabilities.get());
       
-      std::unique_ptr<Data> predictions = network->get_output();
       std::cout << "Accuracy: " << accuracy(predictions.get(), dataset->get_batch_labels()) << std::endl;
       
       network->update(0.1);

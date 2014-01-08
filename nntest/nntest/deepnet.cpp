@@ -18,10 +18,6 @@ DeepNetwork::DeepNetwork(int batch_size, int data_dimension) : m_setup(false) {
   m_layers.push_back(std::unique_ptr<Layer>(new DataLayer(batch_size, data_dimension)));
 };
 
-void DeepNetwork::set_input(Data* input) {
-  dynamic_cast<DataLayer*>(m_layers[0].get())->set_current_data(input);
-}
-
 std::unique_ptr<Data> DeepNetwork::get_output() {
   return m_layers.back()->get_output()->copy();
 }
@@ -34,8 +30,10 @@ void DeepNetwork::setup() {
   m_setup = true;
 }
 
-void DeepNetwork::forward() {
+void DeepNetwork::forward(Data* input_data) {
   check_setup();
+  
+  dynamic_cast<DataLayer*>(m_layers[0].get())->set_current_data(input_data);
 
   vector<unique_ptr<Layer>>::iterator it = m_layers.begin();
   for (; it<m_layers.end(); it++) {
@@ -43,10 +41,15 @@ void DeepNetwork::forward() {
   }
 }
 
-void DeepNetwork::backward() {
+void DeepNetwork::backward(Data* expected_output) {
   check_setup();
   
+  dynamic_cast<LossLayer*>(m_layers.back().get())->backward(expected_output);
+  
   vector<unique_ptr<Layer>>::reverse_iterator it = m_layers.rbegin();
+  //we already covered the last layer, so skip it now:
+  it++;
+  //the rest of the layers:
   for (; it<m_layers.rend(); it++) {
     (*it)->backward();
   }

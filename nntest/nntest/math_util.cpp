@@ -243,3 +243,26 @@ double MatrixSum::execute(Data* matrix) {
   }
   return sum;
 }
+
+std::unique_ptr<Data> MaxProbabilityPrediction::execute(Data* probabilities) {
+  std::unique_ptr<Data> predictions(probabilities->copy());
+  
+  SetConst(0).execute(predictions.get());
+  
+  long num_rows = probabilities->get_size_dim(0);
+  long num_columns = probabilities->get_size_dim(1);
+  for (long row=0; row<num_rows; row++) {
+    double max = -1.;
+    long max_col = -1;
+    for (long column=0; column<num_columns; column++) {
+      double val = probabilities->get_data_at(row, column);
+      if (val > max) {
+        max = val;
+        max_col = column;
+      }
+    }
+    predictions->get_data()[predictions->get_index(row, max_col)] = 1;
+  }
+  
+  return predictions;
+}
