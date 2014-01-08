@@ -35,6 +35,11 @@ DataCPU::~DataCPU() {
   }
 }
 
+std::unique_ptr<Data> DataCPU::copy() {
+  Data* new_object = new DataCPU(get_size_dim(0), get_size_dim(1));
+  new_object->copy_from(*this);
+  return std::unique_ptr<Data>(new_object);
+}
 
 Data* DataCPU::get_rows_slice(long start, long end) {
   long dim0 = end-start;

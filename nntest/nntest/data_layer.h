@@ -17,7 +17,9 @@
  */
 class DataLayer : public Layer {
 public:
-  DataLayer(Data* output);
+  DataLayer(int batch_size, int data_dimension);
+  
+  DataLayer(Data* data);
   
   virtual void setup();
   
@@ -31,12 +33,13 @@ public:
   
   virtual Data* get_backprop_error() {return NULL;};
   
-  virtual int get_output_size(int dimension) {return m_output->get_size_dim(dimension);};
+  virtual int get_output_size(int dimension) {return output_size[dimension];};
   
-  void set_current_output(Data* output);
+  void set_current_data(Data* output);
   
 private:
   Data* m_output;
+  int output_size[2];
 };
 
 #endif

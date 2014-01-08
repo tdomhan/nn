@@ -115,9 +115,9 @@ void MatrixElementwiseMultiplication::execute() {
   long dim0 = m_matrix1->get_size_dim(0);
   long dim1 = m_matrix1->get_size_dim(1);
   for (int i = 0; i<dim0; i++) {
-    for (int j=0; j<dim1; j++) {
+    for (int j = 0; j<dim1; j++) {
       double val1 = m_matrix1->get_data_at(i, j);
-      double val2 = m_matrix1->get_data_at(i, j);
+      double val2 = m_matrix2->get_data_at(i, j);
       m_result_matrix->get_data()[m_result_matrix->get_index(i, j)] = val1*val2;
     }
   }
@@ -129,7 +129,8 @@ void UniformRandom::execute(Data* matrix) const {
   long dim1 = matrix->get_size_dim(1);
   for (int i = 0; i<dim0; i++) {
     for (int j=0; j<dim1; j++) {
-      data[matrix->get_index(i, j)] = m_max * rand()/float(RAND_MAX);
+      double sign = (rand() % 2) ? -1. : 1.;
+      data[matrix->get_index(i, j)] = sign* m_max * rand()/float(RAND_MAX);
       //std::cout << data[matrix->get_index(dim0, dim1)] << std::endl;
     }
   }

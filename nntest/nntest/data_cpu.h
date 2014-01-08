@@ -18,6 +18,8 @@ public:
   DataCPU(long size_dim0, long size_dim1, double* data);
   ~DataCPU();
   
+  virtual std::unique_ptr<Data> copy();
+  
   virtual Data* get_rows_slice(long start, long end);
   
   virtual double* get_data() const {return m_data; };

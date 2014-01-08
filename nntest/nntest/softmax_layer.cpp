@@ -88,12 +88,12 @@ std::unique_ptr<Data> SoftMaxLayer::get_predictions() {
   SetConst(0).execute(predictions.get());
   
   long num_rows = m_output->get_size_dim(0);
-  long num_columns = m_output->get_size_dim(0);
+  long num_columns = m_output->get_size_dim(1);
   for (long row=0; row<num_rows; row++) {
     double max = -1.;
     long max_col = -1;
     for (long column=0; column<num_columns; column++) {
-      double val = predictions->get_data_at(row, column);
+      double val = m_output->get_data_at(row, column);
       if (val > max) {
         max = val;
         max_col = column;

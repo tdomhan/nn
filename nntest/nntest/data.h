@@ -11,6 +11,8 @@
 
 #include <cassert>
 
+#include <memory>
+
 class Data {
 public:
   Data(long size_dim0, long size_dim1) :
@@ -18,6 +20,8 @@ public:
     m_size_dim1(size_dim1) {};
   
   virtual ~Data() {};
+  
+  virtual std::unique_ptr<Data> copy() = 0;
   
   long get_index(long idx_dim0, long idx_dim1) const {
     long idx = idx_dim0*m_size_dim1+idx_dim1;

@@ -9,13 +9,16 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <memory>
 
+#include "metrics.h"
 #include "data.h"
 #include "data_cpu.h"
 #include "data_layer.h"
 #include "linear_layer.h"
 #include "relu_layer.h"
 #include "softmax_layer.h"
+#include "deepnet.h"
 
 #include "dataset_cifar10.h"
 
@@ -168,45 +171,49 @@ void test_softmax_layer() {
   std::cout << "Completed softmax layer test" << std::endl;
 }
 
+void connect(Layer* bottom, Layer* top) {
+  bottom->connect_top(top);
+  top->connect_bottom(bottom);
+}
+
 void run_example() {
   int batch_size = 100;
   int num_out = 10;
   
   DataSet* dataset = new DataSetCIFAR10("/Users/tdomhan/Projects/nntest/data/cifar-10-batches-bin/data_batch_1.bin", batch_size);
   
-  DataLayer* data_layer = new DataLayer(dataset->get_batch_data());
+  Data* first_batch = dataset->get_batch_data();
+  DeepNetwork* network_ptr = new DeepNetwork(first_batch->get_size_dim(0), first_batch->get_size_dim(1));
+  std::unique_ptr<DeepNetwork> network = std::unique_ptr<DeepNetwork>(network_ptr);
   
-  LinearLayer* linear_layer = new LinearLayer(num_out);
-  
-  SoftMaxLayer* softmax_layer = new SoftMaxLayer();
-
-  //connect the layers
-  data_layer->connect_top(linear_layer);
-
-  linear_layer->connect_bottom(data_layer);
-  
-  softmax_layer->connect_bottom(linear_layer);
-  linear_layer->connect_top(softmax_layer);
-  
-  data_layer->setup();
-  linear_layer->setup();
-  softmax_layer->setup();
+  network->add_layer(std::unique_ptr<Layer>(
+                                            new LinearLayer(1000)
+                                            ));
+  network->add_layer(std::unique_ptr<Layer>(
+                                            new ReluLayer()
+                                            ));
+  network->add_layer(std::unique_ptr<Layer>(
+                                            new LinearLayer(num_out)
+                                            ));
+  network->add_layer(std::unique_ptr<Layer>(
+                                            new SoftMaxLayer()
+                                            ));
+  network->setup();
   
   for(int epoch=0;epoch<100;epoch++) {
     std::cout << "epoch" << std::endl;
     dataset->reset();
     while(dataset->batches_remaining()){
-      data_layer->set_current_output(dataset->get_batch_data());
-      softmax_layer->set_labels(dataset->get_batch_labels());
       
-      data_layer->forward();
-      linear_layer->forward();
-      softmax_layer->forward();
+      network->set_input(dataset->get_batch_data());
       
-      softmax_layer->backward();
-      linear_layer->backward();
+      network->forward();
+      network->backward();
       
-      linear_layer->update(0.005);
+      std::unique_ptr<Data> predictions = network->get_output();
+      std::cout << "Accuracy: " << accuracy(predictions.get(), dataset->get_batch_labels()) << std::endl;
+      
+      network->update(0.1);
       
       dataset->next_batch();
       //std::cout << "batch" << std::endl;
@@ -214,11 +221,6 @@ void run_example() {
   }
   
   std::cout << "done" << std::endl;
-  delete linear_layer;
-  delete data_layer;
-  delete softmax_layer;
-
-  delete dataset;
 }
 
 int main(int argc, const char * argv[])

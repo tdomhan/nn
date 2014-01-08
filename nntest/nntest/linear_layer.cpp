@@ -16,7 +16,7 @@
 
 LinearLayer::LinearLayer(int num_hidden)
   : m_num_hidden(num_hidden),
-    m_initialize(new UniformRandom(0.01))
+    m_initialize(new UniformRandom(0.05))
 {
 
 }

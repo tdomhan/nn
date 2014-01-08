@@ -17,10 +17,19 @@
  */
 
 
-DataLayer::DataLayer(Data* output)
-  : m_output(output)
+DataLayer::DataLayer(int batch_size, int data_dimension)
+  : m_output(NULL)
 {
+  output_size[0] = batch_size;
+  output_size[1] = data_dimension;
 };
+
+DataLayer::DataLayer(Data* data)
+ : m_output(data) {
+   output_size[0] = data->get_size_dim(0);
+   output_size[1] = data->get_size_dim(1);
+}
+
 
 void DataLayer::setup() {
 }
@@ -36,6 +45,6 @@ Data* DataLayer::get_output() {
   return m_output;
 }
 
-void DataLayer::set_current_output(Data* output) {
+void DataLayer::set_current_data(Data* output) {
   m_output = output;
 }
