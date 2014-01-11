@@ -19,4 +19,6 @@
  */
 double accuracy(Data* predictions, Data* labels);
 
+double accuracy(const std::vector<Data*> &predictions, const std::vector<Data*> &labels);
+
 #endif /* defined(__nntest__metrics__) */

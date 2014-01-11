@@ -10,8 +10,8 @@
 #define nntest_data_h
 
 #include <cassert>
-
 #include <memory>
+#include <vector>
 
 class Data {
 public:
@@ -22,6 +22,8 @@ public:
   virtual ~Data() {};
   
   virtual std::unique_ptr<Data> copy() = 0;
+  
+  virtual std::unique_ptr<Data> vstack(std::vector<Data*> data) = 0;
   
   long get_index(long idx_dim0, long idx_dim1) const {
     long idx = idx_dim0*m_size_dim1+idx_dim1;
@@ -36,6 +38,8 @@ public:
   virtual void copy_from(const Data& other) = 0;
   
   //return a data object with a reduced amount of rows
+  //start: inclusive
+  //end: exclusive
   virtual Data* get_rows_slice(long start, long end) = 0;
   
   long get_count() const {return m_size_dim0*m_size_dim1;};

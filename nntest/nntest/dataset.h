@@ -31,23 +31,40 @@ public:
   
   ~DataSet();
   
-  Data* get_batch_data() {return current_batch_data;};
+  Data* get_all_train_data() {return m_train_data.get();};
   
-  Data* get_batch_labels() {return current_batch_labels;};
+  Data* get_all_test_data() {return m_test_data.get();};
   
-  void next_batch();
+  int get_data_dimension() {return m_train_data->get_size_dim(1);};
   
-  bool batches_remaining();
+  const std::vector<Data*> &get_train_data_batches() {return m_train_data_batches;};
+  const std::vector<Data*> &get_train_labels_batches()  {return m_train_labels_batches;};
   
-  void reset();
+  const std::vector<Data*> &get_test_data_batches() {return m_test_data_batches;};
+  const std::vector<Data*> &get_test_labels_batches()  {return m_test_labels_batches;};
+  
+  bool has_test_data() {return m_has_test_data;};
 
 protected:
   void setup();
   
+  void slice_batches(Data& data, std::vector<Data*>& batches);
+  
   void load_batch();
   
-  Data* m_data;
-  Data* m_labels;
+  std::unique_ptr<Data> m_train_data;
+  std::unique_ptr<Data> m_train_labels;
+  
+  std::vector<Data*> m_train_data_batches;
+  std::vector<Data*> m_train_labels_batches;
+  
+  bool m_has_test_data;
+  
+  std::unique_ptr<Data> m_test_data;
+  std::unique_ptr<Data> m_test_labels;
+  
+  std::vector<Data*> m_test_data_batches;
+  std::vector<Data*> m_test_labels_batches;
   
 private:
   int m_batch_size;

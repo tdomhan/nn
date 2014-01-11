@@ -10,58 +10,31 @@
 
 #include "data_cpu.h"
 
-DataSet::DataSet(int batch_size) : m_batch_size(batch_size), m_current_pointer(0) {};
+DataSet::DataSet(int batch_size) : m_batch_size(batch_size), m_has_test_data(false) {};
 
 DataSet::DataSet(Data* data, Data* labels, int batch_size) :
 m_batch_size(batch_size),
-m_current_pointer(0),
-m_data(data),
-m_labels(labels)
+m_has_test_data(false)
 {
     setup();
 };
 
 void DataSet::setup() {
-  assert(m_data->get_size_dim(0) == m_labels->get_size_dim(0));
-  m_rows = m_data->get_size_dim(0);
-  current_batch_data = new DataCPU(m_batch_size, m_data->get_size_dim(1));
-  current_batch_labels = new DataCPU(m_batch_size, m_labels->get_size_dim(1));
-  
-  load_batch();
+  slice_batches(*m_train_data.get(), m_train_data_batches);
+  slice_batches(*m_train_labels.get(), m_train_labels_batches);
+  if(has_test_data()) {
+    slice_batches(*m_test_data.get(), m_test_data_batches);
+    slice_batches(*m_test_labels.get(), m_test_labels_batches);
+  }
+}
+
+void DataSet::slice_batches(Data& data, std::vector<Data*>& batches) {
+  int current_row = 0;
+  while(current_row < data.get_size_dim(0)) {
+    batches.push_back(data.get_rows_slice(current_row, current_row+m_batch_size));
+    current_row += m_batch_size;
+  }
 }
 
 DataSet::~DataSet() {
-  delete m_data;
-  delete m_labels;
-  delete current_batch_data;
-  delete current_batch_labels;
-}
-
-void DataSet::next_batch() {
-  assert(batches_remaining());
-  m_current_pointer += m_batch_size;
-  
-  load_batch();
-}
-
-bool DataSet::batches_remaining() {
-  return m_current_pointer+m_batch_size < m_rows;
-}
-
-
-void DataSet::reset() {
-  m_current_pointer = 0;
-
-  load_batch();
-}
-
-void DataSet::load_batch() {
-  Data* batch;
-  batch= m_data->get_rows_slice(m_current_pointer, m_current_pointer+m_batch_size);
-  current_batch_data->copy_from(*batch);
-  delete batch;
-  
-  batch= m_labels->get_rows_slice(m_current_pointer, m_current_pointer+m_batch_size);
-  current_batch_labels->copy_from(*batch);
-  delete batch;
 }

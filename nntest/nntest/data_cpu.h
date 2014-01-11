@@ -16,9 +16,12 @@ public:
   
   DataCPU(long size_dim0, long size_dim1);
   DataCPU(long size_dim0, long size_dim1, double* data);
-  ~DataCPU();
+  
+  virtual ~DataCPU();
   
   virtual std::unique_ptr<Data> copy();
+  
+  virtual std::unique_ptr<Data> vstack(std::vector<Data*> data);
   
   virtual Data* get_rows_slice(long start, long end);
   
