@@ -34,7 +34,7 @@ public:
   
   virtual Data* get_backprop_error();
   
-  virtual int get_output_size(int dimension);
+  //virtual int get_output_size(int dimension);
   
 private:
   Data* m_output;

@@ -30,8 +30,8 @@ void DataSet::setup() {
 
 void DataSet::slice_batches(Data& data, std::vector<Data*>& batches) {
   int current_row = 0;
-  while(current_row < data.get_size_dim(0)) {
-    batches.push_back(data.get_rows_slice(current_row, current_row+m_batch_size));
+  while(current_row < data.get_num_samples()) {
+    batches.push_back(data.get_samples_slice(current_row, current_row+m_batch_size));
     current_row += m_batch_size;
   }
 }

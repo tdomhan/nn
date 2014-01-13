@@ -58,7 +58,13 @@ DataSetCIFAR10::DataSetCIFAR10(const std::string &data_folder, int test_fold, in
    m_train_data = data.vstack(train_data_raw);
    m_train_labels = data.vstack(train_labels_raw);
    
-   std::cout << "Train data shape: " << m_train_data->get_size_dim(0) << " " <<  m_train_data->get_size_dim(1) << std::endl;
+   m_train_data->reshape(m_train_data->get_height(), 3, 32, 32);
+   m_train_labels->reshape(m_train_labels->get_height(), 1, 1, 10);
+   
+   m_test_data->reshape(m_test_data->get_height(), 3, 32, 32);
+   m_test_labels->reshape(m_test_labels->get_height(), 1, 1, 10);
+   
+   std::cout << "Train data shape: " << m_train_data->get_size_dim(0) << " " <<  m_train_data->get_size_dim(1) << " " <<  m_train_data->get_size_dim(2) << " " <<  m_train_data->get_size_dim(3) <<std::endl;
    
    train_data.clear();
    train_labels.clear();

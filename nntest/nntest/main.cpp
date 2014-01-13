@@ -63,7 +63,7 @@ void test_matrix_multiplication() {
   std::cout << "result" << std::endl;
   result.print();
   assert(fabs(result.get_data()[0] - (1*1+2*5)) < EPS);
-  assert(fabs(result.get_data()[result.get_count()-1] - (7*4 + 8*8)) < EPS);
+  assert(fabs(result.get_data()[result.get_total_count()-1] - (7*4 + 8*8)) < EPS);
 }
 
 void test_matrix_multiplication_transpose() {
@@ -94,7 +94,7 @@ void test_matrix_multiplication_transpose() {
   std::cout << "result" << std::endl;
   result.print();
   assert(fabs(result.get_data()[0] - (1*1+3*2+5*3+7*4)) < EPS);
-  assert(fabs(result.get_data()[result.get_count()-1] - (2*5+4*6+6*7+8*8)) < EPS);
+  assert(fabs(result.get_data()[result.get_total_count()-1] - (2*5+4*6+6*7+8*8)) < EPS);
 }
 
 
@@ -111,11 +111,11 @@ void test_layer(Layer* layer, Data* input, Data* expected_output) {
   layer->forward();
   
   Data* output = layer->get_output();
-  assert(output->get_size_dim(0) == expected_output->get_size_dim(0));
-  assert(output->get_size_dim(1) == expected_output->get_size_dim(1));
+  assert(output->get_width() == expected_output->get_width());
+  assert(output->get_height() == expected_output->get_height());
   
-  int out_size_dim0 = layer->get_output_size(0);
-  int out_size_dim1 = layer->get_output_size(1);
+  long out_size_dim0 = layer->get_output()->get_width();
+  long out_size_dim1 = layer->get_output()->get_height();
   for (int i=0; i<out_size_dim0; i++) {
     for (int j=0; j<out_size_dim1; j++) {
       assert((output->get_data_at(i, j) - expected_output->get_data_at(i, j)) < EPS);
@@ -130,7 +130,7 @@ void test_linear_layer() {
   LinearLayer* linear_layer = new LinearLayer(num_hidden, new SetConst(1));
   int num_samples = 20;
   int input_dim = 5;
-  Data* data = new DataCPU(num_samples, input_dim);
+  Data* data = new DataCPU(num_samples, 1, 1, input_dim);
   SetConst(1).execute(data);
   data->print();
   DataLayer* data_layer = new DataLayer(data);
@@ -146,8 +146,8 @@ void test_linear_layer() {
   
   
   Data* output = linear_layer->get_output();
-  int out_size_dim0 = linear_layer->get_output_size(0);
-  int out_size_dim1 = linear_layer->get_output_size(1);
+  long out_size_dim0 = linear_layer->get_output()->get_height();
+  long out_size_dim1 = linear_layer->get_output()->get_width();
   for (int i=0; i<out_size_dim0; i++) {
     for (int j=0; j<out_size_dim1; j++) {
       assert(output->get_data()[output->get_index(i,j)] == input_dim + 1);
@@ -184,8 +184,8 @@ void test_softmax_layer() {
   double d_in[2][2] = {{1,9},{0,5}};
   double d_out_expected[2][2] = {{exp(1)/(exp(1)+exp(9)), exp(9)/(exp(1)+exp(9))},
                                  {exp(0)/(exp(0)+exp(5)), exp(5)/(exp(0)+exp(5))}};
-  Data* data_input = new DataCPU(num_samples, input_dim, (double*)d_in);
-  Data* data_expected_output = new DataCPU(num_samples, input_dim, (double*)d_out_expected);
+  Data* data_input = new DataCPU(num_samples, 1, 1, input_dim, (double*)d_in);
+  Data* data_expected_output = new DataCPU(num_samples, 1, 1, input_dim, (double*)d_out_expected);
   
   test_layer(soft_max, data_input, data_expected_output);
   
@@ -221,7 +221,6 @@ void run_example() {
   network->add_layer(std::unique_ptr<Layer>(
                                             new SoftMaxLayer()
                                             ));
-  network->setup();
   
   for(int epoch=0;epoch<100;epoch++) {
     std::cout << "epoch" << std::endl;

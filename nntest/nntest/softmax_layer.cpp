@@ -27,13 +27,25 @@ void SoftMaxLayer::setup() {
   //won't work without a layer below
   assert(has_bottom_layer());
   
-  m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
-                         get_bottom_layer()->get_output_size(1));
-  m_backprop_error = new DataCPU(get_bottom_layer()->get_output_size(0),
-                                 get_bottom_layer()->get_output_size(1));
+  Data* data_bottom = get_bottom_layer()->get_output();
+  //we expect flattened data:
+  assert(data_bottom->get_num_channels()==1);
+  assert(data_bottom->get_height()==1);
+
+  m_output = new DataCPU(data_bottom->get_num_samples(),
+                         1,
+                         1,
+                         data_bottom->get_width());
+  m_backprop_error = new DataCPU(data_bottom->get_num_samples(),
+                                 1,
+                                 1,
+                                 data_bottom->get_width());
   
-  m_total_loss = new DataCPU(get_bottom_layer()->get_output_size(0),
-                             get_bottom_layer()->get_output_size(1));
+
+  m_total_loss = new DataCPU(1,
+                             1,
+                             data_bottom->get_num_samples(),
+                             data_bottom->get_width());
 }
 
 //Forward pass
@@ -56,17 +68,20 @@ double SoftMaxLayer::backward(Data* expected_output) {
   //TODO: check that m_labels is in one-hot encoding
   
   m_backprop_error->copy_from(*m_output);
-  MatrixAdd(-1).execute(m_backprop_error, expected_output);
+  std::unique_ptr<Data> backprop_error_matrix = m_backprop_error->flatten_to_matrix();
+  std::unique_ptr<Data> expected_output_matrix = expected_output->flatten_to_matrix();
+
+  MatrixAdd(-1).execute(backprop_error_matrix.get(), expected_output_matrix.get());
   //TODO: show we return the loss for each batch separately or just reduce it to the average?.
   
   m_total_loss->copy_from(*m_output);
   MatrixLog().execute(m_total_loss);
   
   //mask to get only the probabilities of the true labels:
-  MatrixElementwiseMultiplication(m_total_loss, expected_output, m_total_loss).execute();
+  MatrixElementwiseMultiplication(m_total_loss, expected_output_matrix.get(), m_total_loss).execute();
   
-  long num_batches = m_output->get_size_dim(0);
-  double nll = -1./((float)num_batches)*MatrixSum().execute(m_total_loss);
+  long num_batches = m_output->get_num_samples();
+  double nll = -1./((float)num_batches)*DataSum().execute(m_total_loss);
   
   std::cout << "NLL: " << nll << std::endl;
   return nll;
@@ -77,11 +92,13 @@ Data* SoftMaxLayer::get_output() {
   return m_output;
 }
 
-int SoftMaxLayer::get_output_size(int dimension) {
-  return get_bottom_layer()->get_output_size(dimension);
-}
+//int SoftMaxLayer::get_output_size(int dimension) {
+//  return get_bottom_layer()->get_output_size(dimension);
+//}
 
-std::unique_ptr<Data> SoftMaxLayer::get_predictions() {
+
+//TODO: deprecated
+/*std::unique_ptr<Data> SoftMaxLayer::get_predictions() {
   std::unique_ptr<Data> predictions(new DataCPU(m_output->get_size_dim(0),
                                                 m_output->get_size_dim(1)));
   
@@ -103,4 +120,4 @@ std::unique_ptr<Data> SoftMaxLayer::get_predictions() {
   }
   
   return predictions;
-}
+}*/

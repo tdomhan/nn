@@ -195,9 +195,9 @@ private:
   double m_value;
 };
 
-class MatrixSum {
+class DataSum {
 public:
-  MatrixSum() {};
+  DataSum() {};
   
   virtual double execute(Data* matrix);
 private:

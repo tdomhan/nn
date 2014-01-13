@@ -32,23 +32,31 @@ MatrixMultiplication::MatrixMultiplication(Data* matrix1, Data* matrix2, Data* r
 }
 
 void MatrixMultiplication::check_dimensions() {
+  assert(m_matrix1->get_num_samples() == 1);
+  assert(m_matrix2->get_num_samples() == 1);
+  assert(m_result_matrix->get_num_samples() == 1);
+
+  assert(m_matrix1->get_num_channels() == 1);
+  assert(m_matrix2->get_num_channels() == 1);
+  assert(m_result_matrix->get_num_channels() == 1);
+  
   long m1_d0, m1_d1, m2_d0, m2_d1, r_d0, r_d1;
   if(m_matrix1_transpose == NoTranspose) {
-    m1_d0 = m_matrix1->get_size_dim(0);
-    m1_d1 = m_matrix1->get_size_dim(1);
+    m1_d0 = m_matrix1->get_height();
+    m1_d1 = m_matrix1->get_width();
   } else {
-    m1_d0 = m_matrix1->get_size_dim(1);
-    m1_d1 = m_matrix1->get_size_dim(0);
+    m1_d0 = m_matrix1->get_width();
+    m1_d1 = m_matrix1->get_height();
   }
   if(m_matrix2_transpose == NoTranspose) {
-    m2_d0 = m_matrix2->get_size_dim(0);
-    m2_d1 = m_matrix2->get_size_dim(1);
+    m2_d0 = m_matrix2->get_height();
+    m2_d1 = m_matrix2->get_width();
   } else {
-    m2_d0 = m_matrix2->get_size_dim(1);
-    m2_d1 = m_matrix2->get_size_dim(0);
+    m2_d0 = m_matrix2->get_width();
+    m2_d1 = m_matrix2->get_height();
   }
-  r_d0 = m_result_matrix->get_size_dim(0);
-  r_d1 = m_result_matrix->get_size_dim(1);
+  r_d0 = m_result_matrix->get_height();
+  r_d1 = m_result_matrix->get_width();
 
   assert(m1_d1 == m2_d0);
   assert(m1_d0 == r_d0);
@@ -56,10 +64,10 @@ void MatrixMultiplication::check_dimensions() {
 }
 
 void MatrixMultiplicationMKL::execute() {
-  int m1_d0 = (int) m_matrix1->get_size_dim(0);
-  int m1_d1 = (int) m_matrix1->get_size_dim(1);
-  int m2_d0 = (int) m_matrix2->get_size_dim(0);
-  int m2_d1 = (int) m_matrix2->get_size_dim(1);
+  int m1_d0 = (int) m_matrix1->get_height();
+  int m1_d1 = (int) m_matrix1->get_width();
+  int m2_d0 = (int) m_matrix2->get_height();
+  int m2_d1 = (int) m_matrix2->get_width();
   
   CBLAS_TRANSPOSE m1_transpose = (m_matrix1_transpose == NoTranspose) ? CblasNoTrans: CblasTrans;
   CBLAS_TRANSPOSE m2_transpose = (m_matrix2_transpose == NoTranspose) ? CblasNoTrans: CblasTrans;
@@ -98,12 +106,20 @@ m_result_matrix(result_matrix)
 }
 
 void MatrixElementwiseMultiplication::check_dimensions() {
-  long m1_d0 = m_matrix1->get_size_dim(0);
-  long m1_d1 = m_matrix1->get_size_dim(1);
-  long m2_d0 = m_matrix2->get_size_dim(0);
-  long m2_d1 = m_matrix2->get_size_dim(1);
-  long r_d0 = m_result_matrix->get_size_dim(0);
-  long r_d1 = m_result_matrix->get_size_dim(1);
+  assert(m_matrix1->get_num_samples() == 1);
+  assert(m_matrix2->get_num_samples() == 1);
+  assert(m_result_matrix->get_num_samples() == 1);
+  
+  assert(m_matrix1->get_num_channels() == 1);
+  assert(m_matrix2->get_num_channels() == 1);
+  assert(m_result_matrix->get_num_channels() == 1);
+  
+  long m1_d0 = m_matrix1->get_height();
+  long m1_d1 = m_matrix1->get_width();
+  long m2_d0 = m_matrix2->get_height();
+  long m2_d1 = m_matrix2->get_width();
+  long r_d0 = m_result_matrix->get_height();
+  long r_d1 = m_result_matrix->get_width();
   
   assert(m1_d0 == m2_d0);
   assert(m2_d0 == r_d0);
@@ -112,8 +128,9 @@ void MatrixElementwiseMultiplication::check_dimensions() {
 }
 
 void MatrixElementwiseMultiplication::execute() {
-  long dim0 = m_matrix1->get_size_dim(0);
-  long dim1 = m_matrix1->get_size_dim(1);
+  long dim0 = m_matrix1->get_height();
+  long dim1 = m_matrix1->get_width();
+
   for (int i = 0; i<dim0; i++) {
     for (int j = 0; j<dim1; j++) {
       double val1 = m_matrix1->get_data_at(i, j);
@@ -125,88 +142,83 @@ void MatrixElementwiseMultiplication::execute() {
 
 void UniformRandom::execute(Data* matrix) const {
   double* data = matrix->get_data();
-  long dim0 = matrix->get_size_dim(0);
-  long dim1 = matrix->get_size_dim(1);
-  for (int i = 0; i<dim0; i++) {
-    for (int j=0; j<dim1; j++) {
-      double sign = (rand() % 2) ? -1. : 1.;
-      data[matrix->get_index(i, j)] = sign* m_max * rand()/float(RAND_MAX);
-      //std::cout << data[matrix->get_index(dim0, dim1)] << std::endl;
-    }
+  long count = matrix->get_total_count();
+  for (int i = 0; i<count; i++) {
+    double sign = (rand() % 2) ? -1. : 1.;
+    data[i] = sign* m_max * rand()/float(RAND_MAX);
+    //std::cout << data[matrix->get_index(dim0, dim1)] << std::endl;
   }
 }
 
 
 void SetConst::execute(Data* matrix) const {
   double* data = matrix->get_data();
-  long dim0 = matrix->get_size_dim(0);
-  long dim1 = matrix->get_size_dim(1);
-  for (int i = 0; i<dim0; i++) {
-    for (int j=0; j<dim1; j++) {
-      data[matrix->get_index(i, j)] = m_value;
+  long count = matrix->get_total_count();
+  for (int i = 0; i<count; i++) {
+      data[i] = m_value;
       //std::cout << data[matrix->get_index(i, j)] << std::endl;
       //std::cout << i << " " << j << " "<< matrix->get_index(i, j) << std::endl;
-    }
   }
 }
 
 void MatrixLog::execute(Data* matrix) const {
   double* data = matrix->get_data();
-  long dim0 = matrix->get_size_dim(0);
-  long dim1 = matrix->get_size_dim(1);
-  for (int i = 0; i<dim0; i++) {
-    for (int j=0; j<dim1; j++) {
-      double value = matrix->get_data_at(i, j);
-      data[matrix->get_index(i, j)] = log(fmax(value,0.0001));
-    }
+  long count = matrix->get_total_count();
+  for (int i = 0; i<count; i++) {
+    double value = data[i];
+    data[i] = log(fmax(value,0.0001));
   }
 }
 
 void AllNegativeZero::execute(Data* matrix) const{
   double* data = matrix->get_data();
-  long dim0 = matrix->get_size_dim(0);
-  long dim1 = matrix->get_size_dim(1);
-  for (int i = 0; i<dim0; i++) {
-    for (int j=0; j<dim1; j++) {
-      double val = matrix->get_data_at(i, j);
-      data[matrix->get_index(i, j)] = fmax(0,val);
-    }
+  long count = matrix->get_total_count();
+  for (int i = 0; i<count; i++) {
+    double val = data[i];
+    data[i] = fmax(0,val);
   }
 }
 
 void AllNegativeZeroMasked::execute(Data* matrix, Data* mask) const{
   double* data = matrix->get_data();
-  long dim0 = matrix->get_size_dim(0);
-  long dim1 = matrix->get_size_dim(1);
-  for (int i = 0; i<dim0; i++) {
-    for (int j=0; j<dim1; j++) {
-      double val = matrix->get_data_at(i, j);
-      double mask_val = mask->get_data_at(i,j);
-      data[matrix->get_index(i, j)] = val * (mask_val > 0);
-    }
+  double* mask_data = mask->get_data();
+  assert(matrix->get_total_count() == mask->get_total_count());
+  long count = matrix->get_total_count();
+  for (int i = 0; i<count; i++) {
+    double val = data[i];
+    double mask_val = mask_data[i];
+    data[i] = val * (mask_val > 0);
   }
 }
 
 void SoftmaxRowByRow::execute(Data* matrix) const {
-  long num_rows = matrix->get_size_dim(0);
-  long num_columns = matrix->get_size_dim(1);
+  assert(matrix->get_num_channels() == 1);
+  assert(matrix->get_height() == 1);
+
+  long num_rows = matrix->get_num_samples();
+  long num_columns = matrix->get_width();
   for (int row_id=0; row_id < num_rows; row_id++) {
     double row_sum = 0;
     for (int column_id=0; column_id < num_columns; column_id++) {
-      row_sum += exp(matrix->get_data_at(row_id, column_id));
+      row_sum += exp(matrix->get_data_at(row_id, 0, 0, column_id));
     }
     for (int column_id=0; column_id < num_columns; column_id++) {
-      double val = matrix->get_data_at(row_id, column_id);
-      matrix->get_data()[matrix->get_index(row_id, column_id)] = exp(val) / row_sum;
+      double val = matrix->get_data_at(row_id, 0, 0, column_id);
+      matrix->get_data()[matrix->get_index(row_id,  0, 0, column_id)] = exp(val) / row_sum;
     }
   }
 }
 
 void MatrixAdd::execute(Data* m1, Data* m2) const {
-  assert(m1->get_size_dim(0) == m2->get_size_dim(0));
-  assert(m1->get_size_dim(1) == m2->get_size_dim(1));
-  long num_rows = m1->get_size_dim(0);
-  long num_columns = m2->get_size_dim(1);
+  assert(m1->get_num_samples() == 1);
+  assert(m1->get_num_samples() == 1);
+  assert(m2->get_num_samples() == 1);
+  assert(m2->get_num_samples() == 1);
+  
+  assert(m1->get_height() == m2->get_height());
+  assert(m1->get_width() == m2->get_width());
+  long num_rows = m1->get_height();
+  long num_columns = m2->get_width();
   for (int row_id=0; row_id < num_rows; row_id++) {
     for (int column_id=0; column_id < num_columns; column_id++) {
       m1->get_data()[m1->get_index(row_id, column_id)] += m_factor * m2->get_data_at(row_id, column_id);
@@ -216,12 +228,12 @@ void MatrixAdd::execute(Data* m1, Data* m2) const {
 
 void PlusEqualRow::execute(Data* matrix, Data* row) const {
   //make sure row is a vector
-  assert(row->get_size_dim(0) == 1);
+  assert(row->get_height() == 1);
   //make sure the number of columns matche
-  assert(row->get_size_dim(1) == matrix->get_size_dim(1));
+  assert(row->get_width() == matrix->get_width());
   
-  long num_rows = matrix->get_size_dim(0);
-  long num_columns = matrix->get_size_dim(1);
+  long num_rows = matrix->get_height();
+  long num_columns = matrix->get_width();
   for (int row_id=0; row_id < num_rows; row_id++) {
     for (int column_id=0; column_id < num_columns; column_id++) {
       matrix->get_data()[matrix->get_index(row_id, column_id)] += row->get_data_at(0, column_id);
@@ -231,37 +243,37 @@ void PlusEqualRow::execute(Data* matrix, Data* row) const {
 
 
 
-double MatrixSum::execute(Data* matrix) {
+double DataSum::execute(Data* matrix) {
+  double* data = matrix->get_data();
   double sum = 0;
-  long dim0 = matrix->get_size_dim(0);
-  long dim1 = matrix->get_size_dim(1);
-  for (int i = 0; i<dim0; i++) {
-    for (int j=0; j<dim1; j++) {
-      double value = matrix->get_data_at(i, j);
-      sum += value;
-    }
+  long count = matrix->get_total_count();
+  for (int i = 0; i<count; i++) {
+      sum += data[i];
   }
   return sum;
 }
 
 std::unique_ptr<Data> MaxProbabilityPrediction::execute(Data* probabilities) {
+  assert(probabilities->get_num_channels() == 1);
+  assert(probabilities->get_height() == 1);
+  
   std::unique_ptr<Data> predictions(probabilities->copy());
   
   SetConst(0).execute(predictions.get());
   
-  long num_rows = probabilities->get_size_dim(0);
-  long num_columns = probabilities->get_size_dim(1);
-  for (long row=0; row<num_rows; row++) {
+  long num_samples = probabilities->get_num_samples();
+  long num_columns = probabilities->get_width();
+  for (long sample=0; sample<num_samples; sample++) {
     double max = -1.;
     long max_col = -1;
     for (long column=0; column<num_columns; column++) {
-      double val = probabilities->get_data_at(row, column);
+      double val = probabilities->get_data_at(sample, 0, 0, column);
       if (val > max) {
         max = val;
         max_col = column;
       }
     }
-    predictions->get_data()[predictions->get_index(row, max_col)] = 1;
+    predictions->get_data()[predictions->get_index(sample, 0, 0, max_col)] = 1;
   }
   
   return predictions;

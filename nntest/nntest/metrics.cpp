@@ -15,9 +15,13 @@
 #include <vector>
 
 double accuracy(Data* predictions, Data* labels) {
-  std::unique_ptr<Data> correct_indicator = std::unique_ptr<Data>(new DataCPU(predictions->get_size_dim(0),
-                                                           predictions->get_size_dim(1)));
-  MatrixElementwiseMultiplication(predictions, labels, correct_indicator.get()).execute();
+  std::unique_ptr<Data> correct_indicator = std::unique_ptr<Data>(new DataCPU(predictions->get_num_samples(),
+                                                           predictions->get_width()));
+  std::unique_ptr<Data> labels_matrix = labels->flatten_to_matrix();
+  std::unique_ptr<Data> predictions_matrix = predictions->flatten_to_matrix();
+  MatrixElementwiseMultiplication(predictions_matrix.get(),
+                                  labels_matrix.get(),
+                                  correct_indicator.get()).execute();
 
   /*std::cout << "predictions" << std::endl;
   predictions->print();
@@ -26,7 +30,7 @@ double accuracy(Data* predictions, Data* labels) {
   std::cout << "mult" << std::endl;
   correct_indicator->print();*/
   
-  double num_correct = MatrixSum().execute(correct_indicator.get());
+  double num_correct = DataSum().execute(correct_indicator.get());
   //std::cout << "Num CORRECT: " << num_correct << std::endl;
   double num_total = predictions->get_size_dim(0);
   
@@ -40,11 +44,21 @@ double accuracy(const std::vector<Data*> &predictions, const std::vector<Data*> 
   std::vector<Data*>::const_iterator current_prediction = predictions.begin();
   std::vector<Data*>::const_iterator current_labels = labels.begin();
   for(;current_prediction != predictions.end();current_prediction++, current_labels++) {
-    std::unique_ptr<Data> correct_indicator = std::unique_ptr<Data>(new DataCPU((*current_prediction)->get_size_dim(0),
-                                                                                (*current_prediction)->get_size_dim(1)));
-    MatrixElementwiseMultiplication((*current_prediction), (*current_labels), correct_indicator.get()).execute();
-    num_correct += MatrixSum().execute(correct_indicator.get());
-    num_total   += (*current_prediction)->get_size_dim(0);
+    std::unique_ptr<Data> correct_indicator = std::unique_ptr<Data>(new DataCPU((*current_prediction)->get_num_samples(),
+                                                                                (*current_prediction)->get_width()));
+
+    std::unique_ptr<Data> labels_matrix = (*current_labels)->flatten_to_matrix();
+    std::unique_ptr<Data> predictions_matrix = (*current_prediction)->flatten_to_matrix();
+    
+    //std::cout << "labels:" << std::endl;
+    //labels_matrix->print();
+    //std::cout << "predictions:" << std::endl;
+    //predictions_matrix->print();
+    MatrixElementwiseMultiplication(predictions_matrix.get(),
+                                    labels_matrix.get(),
+                                    correct_indicator.get()).execute();
+    num_correct += DataSum().execute(correct_indicator.get());
+    num_total   += (*current_prediction)->get_num_samples();
   }
   
   return (1.*num_correct) / num_total;

@@ -34,7 +34,7 @@ public:
   
   virtual Data* get_backprop_error() = 0;
   
-  virtual int get_output_size(int dimension) = 0;
+  //virtual int get_output_size(int dimension) = 0;
  
   Layer* get_bottom_layer() {return m_bottom;};
   Layer* get_top_layer() {return m_top;};

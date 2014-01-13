@@ -19,6 +19,8 @@ class DataLayer : public Layer {
 public:
   DataLayer(int batch_size, int data_dimension);
   
+  DataLayer(int batch_size, int num_channels, int height, int width);
+  
   DataLayer(Data* data);
   
   virtual void setup();
@@ -39,7 +41,7 @@ public:
   
 private:
   Data* m_data;
-  int output_size[2];
+  int output_size[4];
 };
 
 #endif

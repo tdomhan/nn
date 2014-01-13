@@ -14,16 +14,28 @@
 class DataCPU : public Data {
 public:
   
-  DataCPU(long size_dim0, long size_dim1);
-  DataCPU(long size_dim0, long size_dim1, double* data);
+  DataCPU(long size_dim2, long size_dim3);
+  DataCPU(long size_dim1, long size_dim2, long size_dim3);
+  DataCPU(long size_dim0, long size_dim1, long size_dim2, long size_dim3);
+
+  DataCPU(long size_dim2, long size_dim3, double* data);
+  DataCPU(long size_dim1, long size_dim2, long size_dim3, double* data);
+  DataCPU(long size_dim0, long size_dim1, long size_dim2, long size_dim3, double* data);
+  
   
   virtual ~DataCPU();
-  
+
   virtual std::unique_ptr<Data> copy();
+  
+  virtual std::unique_ptr<Data> flatten();
+  
+  virtual std::unique_ptr<Data> flatten_to_matrix();
   
   virtual std::unique_ptr<Data> vstack(std::vector<Data*> data);
   
-  virtual Data* get_rows_slice(long start, long end);
+  virtual Data* get_rows_slice(long dim2_start, long dim2_end);
+  
+  virtual Data* get_samples_slice(long dim0_start, long dim0_end);
   
   virtual double* get_data() const {return m_data; };
   
@@ -32,6 +44,8 @@ public:
   virtual void print(); 
   
 private:
+  void allocate();
+  
   double* m_data;
   bool m_owns_data;
 };

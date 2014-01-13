@@ -22,10 +22,15 @@ ReluLayer::~ReluLayer() {
 void ReluLayer::setup() {
   //won't work without a layer below
   assert(has_bottom_layer());
-  m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
-                         get_bottom_layer()->get_output_size(1));
-  m_backprop_error = new DataCPU(m_output->get_size_dim(0),
-                                 m_output->get_size_dim(1));
+  Data* bottom_out = get_bottom_layer()->get_output();
+  m_output = new DataCPU(bottom_out->get_size_dim(0),
+                         bottom_out->get_size_dim(1),
+                         bottom_out->get_size_dim(2),
+                         bottom_out->get_size_dim(3));
+  m_backprop_error = new DataCPU(bottom_out->get_size_dim(0),
+                                 bottom_out->get_size_dim(1),
+                                 bottom_out->get_size_dim(2),
+                                 bottom_out->get_size_dim(3));
 }
 
 //Forward pass
@@ -49,6 +54,8 @@ void ReluLayer::backward() {
   Data* backprop_error_top = get_top_layer()->get_backprop_error();
   assert(data_bottom->get_size_dim(0) == get_backprop_error()->get_size_dim(0));
   assert(data_bottom->get_size_dim(1) == get_backprop_error()->get_size_dim(1));
+  assert(data_bottom->get_size_dim(2) == get_backprop_error()->get_size_dim(2));
+  assert(data_bottom->get_size_dim(3) == get_backprop_error()->get_size_dim(3));
   m_backprop_error->copy_from(*backprop_error_top);
   AllNegativeZeroMasked().execute(m_backprop_error, data_bottom);
 }
@@ -62,6 +69,6 @@ Data* ReluLayer::get_backprop_error() {
   return m_backprop_error;
 };
 
-int ReluLayer::get_output_size(int dimension) {
-  return get_bottom_layer()->get_output_size(dimension);
-}
+//int ReluLayer::get_output_size(int dimension) {
+//  return get_bottom_layer()->get_output_size(dimension);
+//}

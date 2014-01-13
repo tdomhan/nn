@@ -46,22 +46,26 @@ void LinearLayer::setup() {
   
   initialize_bias();
   
-  m_batch_average_vector = new DataCPU(1, get_bottom_layer()->get_output_size(0));
+  m_batch_average_vector = new DataCPU(1, get_bottom_layer()->get_output()->get_num_samples());
   SetConst(1).execute(m_batch_average_vector);
   
-  m_output = new DataCPU(get_bottom_layer()->get_output_size(0),
+  m_output = new DataCPU(get_bottom_layer()->get_output()->get_num_samples(),
+                         1,
+                         1,
                          m_num_hidden);
   
   //provide the error to the layer below
-  m_backprop_error = new DataCPU(get_bottom_layer()->get_output_size(0),
-                                 get_bottom_layer()->get_output_size(1));
+  m_backprop_error = new DataCPU(get_bottom_layer()->get_output()->get_num_samples(),
+                                 1,
+                                 1,
+                                 get_bottom_layer()->get_output()->get_count_per_sample());
 }
 
 void LinearLayer::initialize_weights() {
-  m_weights = new DataCPU(get_bottom_layer()->get_output_size(1),
+  m_weights = new DataCPU(get_bottom_layer()->get_output()->get_count_per_sample(),
                           m_num_hidden);
-  m_weights_update = new DataCPU(m_weights->get_size_dim(0),
-                                 m_weights->get_size_dim(1));
+  m_weights_update = new DataCPU(m_weights->get_height(),
+                                 m_weights->get_width());
   m_initialize->execute(m_weights);
 }
 
@@ -79,15 +83,19 @@ void LinearLayer::forward() {
 //  out_bottom->print();
 //  std::cout << "bottom end" << std::endl;
   //TODO: do multiplication in one GEMM step?
+  
+  //flatten any data dimensions to a single dimension
+  std::unique_ptr<Data> out_bottom_flat = out_bottom->flatten_to_matrix();
+  std::unique_ptr<Data> output_flat = m_output->flatten_to_matrix();
 
   //linear combination of the inputs
   MatrixMultiplicationMKL matrix_multiplication(
-                                             out_bottom,
+                                             out_bottom_flat.get(),
                                              m_weights,
-                                             m_output);
+                                             output_flat.get());
   matrix_multiplication.execute();
   //add bias to each batch
-  PlusEqualRow().execute(m_output, m_bias);
+  PlusEqualRow().execute(output_flat.get(), m_bias);
 }
 
 
@@ -113,14 +121,16 @@ void LinearLayer::backward() {
 
   //m x k
   Data* backprop_error_top = get_top_layer()->get_backprop_error();
+  std::unique_ptr<Data> backprop_error_top_flat = backprop_error_top->flatten_to_matrix();
   
   // m x n
   Data* out_bottom = get_bottom_layer()->get_output();
+  std::unique_ptr<Data> out_bottom_flat = out_bottom->flatten_to_matrix();
 
   //gradient given weights
-  double batch_average = 1. / get_bottom_layer()->get_output_size(0);
-  MatrixMultiplicationMKL calculate_weight_gradient(out_bottom,
-                                                    backprop_error_top,
+  double batch_average = 1. / out_bottom->get_num_samples();
+  MatrixMultiplicationMKL calculate_weight_gradient(out_bottom_flat.get(),
+                                                    backprop_error_top_flat.get(),
                                                     m_weights_update,
                                                     MatrixMultiplication::MatrixOp::MatrixTranspose,
                                                     MatrixMultiplication::MatrixOp::NoTranspose,
@@ -129,18 +139,19 @@ void LinearLayer::backward() {
 
   //gradient given the bias
   MatrixMultiplicationMKL calculate_bias_gradient(m_batch_average_vector,
-                                                  backprop_error_top,
+                                                  backprop_error_top_flat.get(),
                                                   m_bias_update,
                                                   MatrixMultiplication::MatrixOp::NoTranspose,
                                                   MatrixMultiplication::MatrixOp::NoTranspose,
                                                   batch_average);
   calculate_bias_gradient.execute();
   
+  std::unique_ptr<Data> backprop_error_flat = m_backprop_error->flatten_to_matrix();
   
   //gradient given input from layer below
-  MatrixMultiplicationMKL calculate_error_given_input(backprop_error_top,
+  MatrixMultiplicationMKL calculate_error_given_input(backprop_error_top_flat.get(),
                                                       m_weights,
-                                                      m_backprop_error,
+                                                      backprop_error_flat.get(),
                                                       MatrixMultiplication::MatrixOp::NoTranspose,
                                                       MatrixMultiplication::MatrixOp::MatrixTranspose,
                                                       batch_average);
@@ -158,8 +169,8 @@ Data* LinearLayer::get_output() {
   return m_output;
 }
 
-int LinearLayer::get_output_size(int dimension) {
-  return (int)m_output->get_size_dim(dimension);
-}
+//int LinearLayer::get_output_size(int dimension) {
+//  return (int)m_output->get_size_dim(dimension);
+//}
 
 

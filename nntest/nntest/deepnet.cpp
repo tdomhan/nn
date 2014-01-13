@@ -31,9 +31,9 @@ void DeepNetwork::setup() {
 }
 
 void DeepNetwork::forward(Data* input_data) {
-  check_setup();
-  
   dynamic_cast<DataLayer*>(m_layers[0].get())->set_current_data(input_data);
+  
+  check_setup();
 
   vector<unique_ptr<Layer>>::iterator it = m_layers.begin();
   for (; it<m_layers.end(); it++) {
@@ -71,6 +71,7 @@ void DeepNetwork::add_layer(std::unique_ptr<Layer> layer) {
 
 void DeepNetwork::check_setup() {
   if(!m_setup) {
-    throw runtime_error("setup() was not called before using the network");
+    setup();
+    m_setup = true;
   }
 }

@@ -18,6 +18,8 @@
  * Apply the softmax function.
  * f(x) = exp(a_i) / sum(exp(a_j), 0, num_input)
  * And backpropagates the Negative Log Likelihood given the true labels.
+ 
+ * TODO: implement numerically more stable version
  */
 class SoftMaxLayer : public LossLayer {
 public:
@@ -42,10 +44,10 @@ public:
   
   virtual Data* get_backprop_error() {return m_backprop_error;};
   
-  virtual int get_output_size(int dimension);
+  //virtual int get_output_size(int dimension);
   
   //get predictions (in one-hot encoding)
-  std::unique_ptr<Data> get_predictions();
+ // std::unique_ptr<Data> get_predictions();
   
 private:
   Data* m_output;
