@@ -13,6 +13,8 @@
 
 #include "layer.h"
 
+#include <memory>
+
 class ReluLayer : public Layer {
 public:
   ReluLayer();
@@ -34,11 +36,9 @@ public:
   
   virtual Data* get_backprop_error();
   
-  //virtual int get_output_size(int dimension);
-  
 private:
-  Data* m_output;
-  Data* m_backprop_error;
+  std::unique_ptr<Data> m_output;
+  std::unique_ptr<Data> m_backprop_error;
 };
 
 #endif /* defined(__nntest__relu_layer__) */

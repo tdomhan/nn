@@ -16,7 +16,8 @@
 
 LinearLayer::LinearLayer(int num_hidden)
   : m_num_hidden(num_hidden),
-    m_initialize(new UniformRandom(0.05))
+    //m_initialize(new UniformRandom(0.05))
+      m_initialize(new FanInScaleFiller())
 {
 
 }
@@ -162,15 +163,7 @@ void LinearLayer::update(double learning_rate) {
   MatrixAdd apply_update(-1*learning_rate);
   apply_update.execute(m_weights, m_weights_update);
   apply_update.execute(m_bias, m_bias_update);
+  
+    std::cout << "Sum of weight updates linear layer" << DataAbsSum().execute(m_weights_update) << std::endl;
 }
-
-
-Data* LinearLayer::get_output() {
-  return m_output;
-}
-
-//int LinearLayer::get_output_size(int dimension) {
-//  return (int)m_output->get_size_dim(dimension);
-//}
-
 

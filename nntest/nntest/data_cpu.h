@@ -31,6 +31,8 @@ public:
   
   virtual std::unique_ptr<Data> flatten_to_matrix();
   
+  virtual std::unique_ptr<Data> get_view();
+  
   virtual std::unique_ptr<Data> vstack(std::vector<Data*> data);
   
   virtual Data* get_rows_slice(long dim2_start, long dim2_end);

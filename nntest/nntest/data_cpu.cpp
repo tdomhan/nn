@@ -76,6 +76,15 @@ std::unique_ptr<Data> DataCPU::flatten_to_matrix() {
   return std::unique_ptr<Data>(new_object);
 }
 
+std::unique_ptr<Data> DataCPU::get_view() {
+  Data* new_object = new DataCPU(get_size_dim(0),
+                                 get_size_dim(1),
+                                 get_size_dim(2),
+                                 get_size_dim(3),
+                                 m_data);
+  return std::unique_ptr<Data>(new_object);
+}
+
 std::unique_ptr<Data> DataCPU::vstack(std::vector<Data*> data) {
   assert(data.size() > 0);
   long dim2 = 0;

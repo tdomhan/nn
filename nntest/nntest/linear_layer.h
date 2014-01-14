@@ -36,11 +36,9 @@ public:
   virtual void update(double learning_rate);
   
   //output off this layer afer the forward pass
-  virtual Data* get_output();
+  virtual Data* get_output() {return m_output;};
   
   virtual Data* get_backprop_error() {return m_backprop_error;};
-  
-  //virtual int get_output_size(int dimension);
   
 private:
   void initialize_weights();

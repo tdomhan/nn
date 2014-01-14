@@ -48,10 +48,14 @@ public:
   //returns a view of the data
   virtual std::unique_ptr<Data> flatten() = 0;
   
-  // flatten all data dimensions, reduces to 1 x 1 x num_samplesx data_dimension
+  // flatten all data dimensions, reduces to 1 x 1 x num_samples x data_dimension
   // with data_dimension == num_channels * width * height
   //returns a view of the data
   virtual std::unique_ptr<Data> flatten_to_matrix() = 0;
+  
+  //Get a view of the Data.
+  //Returns a new object, that shares the same data.
+  virtual std::unique_ptr<Data> get_view() = 0;
   
   //stack vertically
   // assumes m_size_dim0 == m_size_dim1 == 1

@@ -150,6 +150,16 @@ void UniformRandom::execute(Data* matrix) const {
   }
 }
 
+void FanInScaleFiller::execute(Data* matrix) const {
+  double* data = matrix->get_data();
+  long count = matrix->get_total_count();
+  double scale = sqrt(3./(matrix->get_num_channels() * matrix->get_width() * matrix->get_height()));
+  for (int i = 0; i<count; i++) {
+    double sign = (rand() % 2) ? -1. : 1.;
+    data[i] = sign * scale * rand()/float(RAND_MAX);
+  }
+}
+
 
 void SetConst::execute(Data* matrix) const {
   double* data = matrix->get_data();
@@ -227,6 +237,10 @@ void MatrixAdd::execute(Data* m1, Data* m2) const {
 }
 
 void PlusEqualRow::execute(Data* matrix, Data* row) const {
+  assert(row->get_num_samples() == 1);
+  assert(row->get_num_channels() == 1);
+  assert(matrix->get_num_samples() == 1);
+  assert(matrix->get_num_channels() == 1);
   //make sure row is a vector
   assert(row->get_height() == 1);
   //make sure the number of columns matche
@@ -253,6 +267,17 @@ double DataSum::execute(Data* matrix) {
   return sum;
 }
 
+double DataAbsSum::execute(Data* matrix) {
+  double* data = matrix->get_data();
+  double sum = 0;
+  long count = matrix->get_total_count();
+  for (int i = 0; i<count; i++) {
+    sum += fabs(data[i]);
+  }
+  return sum;
+}
+
+
 std::unique_ptr<Data> MaxProbabilityPrediction::execute(Data* probabilities) {
   assert(probabilities->get_num_channels() == 1);
   assert(probabilities->get_height() == 1);
@@ -277,4 +302,58 @@ std::unique_ptr<Data> MaxProbabilityPrediction::execute(Data* probabilities) {
   }
   
   return predictions;
+}
+
+long Im2Col::get_output_height(Data* matrix_in) {
+  return matrix_in->get_num_channels() * m_filter_height * m_filter_width;
+}
+
+long Im2Col::get_output_width(Data* matrix_in) {
+  //the number of patches in the first dimension
+  long height_col = get_height_convolved(matrix_in);
+  //the number of patches in the second dimension
+  long width_col = get_width_convolved(matrix_in);
+  return height_col * width_col;
+}
+
+inline long Im2Col::get_height_convolved(Data* matrix_in) {
+  return (matrix_in->get_height() - m_filter_height) / m_stride + 1;
+}
+
+inline long Im2Col::get_width_convolved(Data* matrix_in) {
+  return (matrix_in->get_width() - m_filter_width) / m_stride + 1;
+}
+
+void Im2Col::execute(Data* matrix_in, Data* matrix_out) {
+  assert(matrix_in->get_num_samples() == 1);
+  assert(matrix_out->get_num_samples() == 1);
+  
+  long in_height = matrix_in->get_height();
+  long in_width = matrix_in->get_width();
+
+  //the number of patches in the first dimension
+  long height_col = get_height_convolved(matrix_in);
+  //the number of patches in the second dimension
+  long width_col = get_width_convolved(matrix_in);
+
+  long output_rows = get_output_height(matrix_in);
+  
+  assert(matrix_out->get_height() == output_rows);
+  assert(matrix_out->get_width() == height_col * width_col);
+  
+  double* data_im = matrix_in->get_data();
+  double* data_col = matrix_out->get_data();
+  
+  for (int output_row = 0; output_row < output_rows; ++output_row) {
+    int w_offset = output_row % m_filter_width;
+    int h_offset = (output_row / m_filter_width) % m_filter_height;
+    int c_in = output_row / m_filter_height / m_filter_width;
+    for (int h = 0; h < height_col; ++h) {
+      for (int w = 0; w < width_col; ++w) {
+        data_col[(output_row * height_col + h) * width_col + w] =
+          data_im[(c_in * in_height + h * m_stride + h_offset) * in_width
+                + w * m_stride + w_offset];
+      }
+    }
+  }
 }

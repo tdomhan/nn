@@ -17,6 +17,7 @@
 #include "data_layer.h"
 #include "linear_layer.h"
 #include "relu_layer.h"
+#include "conv_layer.h"
 #include "softmax_layer.h"
 #include "deepnet.h"
 #include "math_util.h"
@@ -36,6 +37,8 @@ void network_test_performance(DeepNetwork* network, DataSet* dataset) {
   std::vector<std::unique_ptr<Data>> test_predictions;
   std::vector<Data*> test_predictions_raw;
   
+  int subset_count = 1000;
+  int subset_idx = 0;
   for (; current_test_data != test_data.end(); current_test_data++, current_test_labels++) {
     network->forward(*current_test_data);
     
@@ -43,6 +46,10 @@ void network_test_performance(DeepNetwork* network, DataSet* dataset) {
     std::unique_ptr<Data> predictions = MaxProbabilityPrediction().execute(probabilities.get());
     test_predictions.push_back(std::move(predictions));
     test_predictions_raw.push_back(test_predictions.back().get());
+    
+    if (subset_idx > subset_count) {
+      break;
+    }
   }
   std::cout << "Test set accuracy: " << accuracy(test_predictions_raw, test_labels) << std::endl;
   test_predictions.clear();
@@ -201,7 +208,7 @@ void connect(Layer* bottom, Layer* top) {
 }
 
 void run_example() {
-  int batch_size = 100;
+  int batch_size = 1;
   int num_out = 10;
   
   DataSet* dataset = new DataSetCIFAR10("/Users/tdomhan/Projects/nntest/data/", 1, batch_size);
@@ -209,8 +216,21 @@ void run_example() {
   DeepNetwork* network_ptr = new DeepNetwork(batch_size, dataset->get_data_dimension());
   std::unique_ptr<DeepNetwork> network = std::unique_ptr<DeepNetwork>(network_ptr);
   
+  
+  /*network->add_layer(std::unique_ptr<Layer>(
+                                            new ConvLayer(12, 1, 5, 5)
+                                            ));
   network->add_layer(std::unique_ptr<Layer>(
-                                            new LinearLayer(1000)
+                                            new ReluLayer()
+                                            ));*/
+  network->add_layer(std::unique_ptr<Layer>(
+                                            new LinearLayer(200)
+                                            ));
+  network->add_layer(std::unique_ptr<Layer>(
+                                            new ReluLayer()
+                                            ));
+  network->add_layer(std::unique_ptr<Layer>(
+                                            new LinearLayer(200)
                                             ));
   network->add_layer(std::unique_ptr<Layer>(
                                             new ReluLayer()
@@ -234,11 +254,11 @@ void run_example() {
       network->forward(*current_train_data);
       network->backward(*current_train_labels);
       
-      network->update(0.05);
+      network->update(0.01);
       
       std::cout << current_batch << "/" <<  train_data.size() << std::endl;
       
-      if(current_batch % 10 == 0) {
+      if(current_batch  * batch_size % (4000) == 0) {
         network_test_performance(network.get(), dataset);
       }
       
