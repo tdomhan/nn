@@ -164,6 +164,6 @@ void LinearLayer::update(double learning_rate) {
   apply_update.execute(m_weights, m_weights_update);
   apply_update.execute(m_bias, m_bias_update);
   
-    std::cout << "Sum of weight updates linear layer" << DataAbsSum().execute(m_weights_update) << std::endl;
+  //std::cout << "Sum of weight updates linear layer" << DataAbsSum().execute(m_weights_update) << std::endl;
 }
 

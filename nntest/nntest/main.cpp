@@ -104,6 +104,9 @@ void test_matrix_multiplication_transpose() {
   assert(fabs(result.get_data()[result.get_total_count()-1] - (2*5+4*6+6*7+8*8)) < EPS);
 }
 
+void test_im2col() {
+  
+}
 
 void test_layer(Layer* layer, Data* input, Data* expected_output) {
   DataLayer* data_layer = new DataLayer(input);
@@ -217,18 +220,18 @@ void run_example() {
   std::unique_ptr<DeepNetwork> network = std::unique_ptr<DeepNetwork>(network_ptr);
   
   
-  /*network->add_layer(std::unique_ptr<Layer>(
+  network->add_layer(std::unique_ptr<Layer>(
                                             new ConvLayer(12, 1, 5, 5)
                                             ));
   network->add_layer(std::unique_ptr<Layer>(
                                             new ReluLayer()
-                                            ));*/
-  network->add_layer(std::unique_ptr<Layer>(
+                                            ));
+/*  network->add_layer(std::unique_ptr<Layer>(
                                             new LinearLayer(200)
                                             ));
   network->add_layer(std::unique_ptr<Layer>(
                                             new ReluLayer()
-                                            ));
+                                            ));*/
   network->add_layer(std::unique_ptr<Layer>(
                                             new LinearLayer(200)
                                             ));
@@ -258,7 +261,7 @@ void run_example() {
       
       std::cout << current_batch << "/" <<  train_data.size() << std::endl;
       
-      if(current_batch  * batch_size % (4000) == 0) {
+      if(current_batch  * batch_size % (1000) == 0) {
         network_test_performance(network.get(), dataset);
       }
       
@@ -273,6 +276,8 @@ int main(int argc, const char * argv[])
 {
   test_matrix_multiplication();
   test_matrix_multiplication_transpose();
+  
+  test_im2col();
 
   test_linear_layer();
   test_relu_layer();

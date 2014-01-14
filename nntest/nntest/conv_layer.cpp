@@ -133,6 +133,6 @@ void ConvLayer::update(double learning_rate) {
   MatrixAdd apply_update(-1*learning_rate);
   apply_update.execute(m_weights.get(), m_weights_update.get());
   
-  std::cout << "Sum of weight updates conv layer" << DataAbsSum().execute(m_weights_update.get()) << std::endl;
+  //std::cout << "Sum of weight updates conv layer" << DataAbsSum().execute(m_weights_update.get()) << std::endl;
 }
 

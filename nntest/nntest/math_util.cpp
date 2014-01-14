@@ -15,6 +15,8 @@
 #include <iostream>
 #include <cassert>
 
+#include <cfloat>
+
 MatrixMultiplication::MatrixMultiplication(Data* matrix1, Data* matrix2, Data* result_matrix,
                      MatrixMultiplication::MatrixOp matrix1_transpose,
                      MatrixMultiplication::MatrixOp matrix2_transpose,
@@ -208,13 +210,18 @@ void SoftmaxRowByRow::execute(Data* matrix) const {
   long num_rows = matrix->get_num_samples();
   long num_columns = matrix->get_width();
   for (int row_id=0; row_id < num_rows; row_id++) {
+    //substract maxixum for numerical stability
+    double row_max = -DBL_MAX;
+    for (int column_id=0; column_id < num_columns; column_id++) {
+      row_max = fmax(row_max, matrix->get_data_at(row_id, 0, 0, column_id));
+    }
     double row_sum = 0;
     for (int column_id=0; column_id < num_columns; column_id++) {
-      row_sum += exp(matrix->get_data_at(row_id, 0, 0, column_id));
+      row_sum += exp(matrix->get_data_at(row_id, 0, 0, column_id) - row_max);
     }
     for (int column_id=0; column_id < num_columns; column_id++) {
       double val = matrix->get_data_at(row_id, 0, 0, column_id);
-      matrix->get_data()[matrix->get_index(row_id,  0, 0, column_id)] = exp(val) / row_sum;
+      matrix->get_data()[matrix->get_index(row_id,  0, 0, column_id)] = exp(val - row_max) / row_sum;
     }
   }
 }

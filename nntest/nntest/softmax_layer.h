@@ -44,11 +44,6 @@ public:
   
   virtual Data* get_backprop_error() {return m_backprop_error;};
   
-  //virtual int get_output_size(int dimension);
-  
-  //get predictions (in one-hot encoding)
- // std::unique_ptr<Data> get_predictions();
-  
 private:
   Data* m_output;
   Data* m_backprop_error;
