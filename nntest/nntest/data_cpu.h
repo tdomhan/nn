@@ -35,13 +35,15 @@ public:
   
   virtual std::unique_ptr<Data> vstack(std::vector<Data*> data);
   
-  virtual Data* get_rows_slice(long dim2_start, long dim2_end);
+  virtual std::unique_ptr<Data> get_rows_slice(long dim2_start, long dim2_end);
   
-  virtual Data* get_samples_slice(long dim0_start, long dim0_end);
+  virtual std::unique_ptr<Data> get_samples_slice(long dim0_start, long dim0_end);
   
   virtual double* get_data() const {return m_data; };
   
   virtual void copy_from(const Data& other);
+  
+  virtual void set_zero();
   
   virtual void print(); 
   

@@ -68,7 +68,10 @@ public:
     return idx;
   };
   
+  //get the matrix index
   inline long get_index(long idx_dim2, long idx_dim3) const {
+    assert(m_size_dim0 == 1);
+    assert(m_size_dim1 == 1);
     long idx = idx_dim2*m_size_dim3+idx_dim3;
     assert(idx < get_total_count());
     return idx;
@@ -101,11 +104,11 @@ public:
   //return a data object with a reduced amount of rows
   //start: inclusive
   //end: exclusive
-  virtual Data* get_rows_slice(long dim2_start, long dim2_end) = 0;
+  virtual std::unique_ptr<Data> get_rows_slice(long dim2_start, long dim2_end) = 0;
   
   //start: inclusive
   //end: exclusive
-  virtual Data* get_samples_slice(long dim0_start, long dim0_end) = 0;
+  virtual std::unique_ptr<Data> get_samples_slice(long dim0_start, long dim0_end) = 0;
   
   inline long get_total_count() const {return m_size_dim0*m_size_dim1*m_size_dim2*m_size_dim3;};
   
@@ -156,6 +159,8 @@ public:
       dim += 1;
     return dim;
   };
+  
+  virtual void set_zero() = 0;
   
   virtual void print() = 0;
   

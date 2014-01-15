@@ -12,6 +12,7 @@
 #include <iostream>
 #include "data.h"
 
+#include <memory>
 
 /*
  * predictions: one-hot encoded predictions
@@ -19,6 +20,6 @@
  */
 double accuracy(Data* predictions, Data* labels);
 
-double accuracy(const std::vector<Data*> &predictions, const std::vector<Data*> &labels);
+double accuracy(const std::vector<std::unique_ptr<Data>> &predictions, const std::vector<std::unique_ptr<Data>> &labels);
 
 #endif /* defined(__nntest__metrics__) */

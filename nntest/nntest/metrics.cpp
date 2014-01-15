@@ -37,12 +37,12 @@ double accuracy(Data* predictions, Data* labels) {
   return num_correct / num_total;
 }
 
-double accuracy(const std::vector<Data*> &predictions, const std::vector<Data*> &labels) {
+double accuracy(const std::vector<std::unique_ptr<Data>> &predictions, const std::vector<std::unique_ptr<Data>> &labels) {
   assert(predictions.size() == labels.size());
   int num_correct = 0;
   int num_total = 0;
-  std::vector<Data*>::const_iterator current_prediction = predictions.begin();
-  std::vector<Data*>::const_iterator current_labels = labels.begin();
+  std::vector<std::unique_ptr<Data>>::const_iterator current_prediction = predictions.begin();
+  std::vector<std::unique_ptr<Data>>::const_iterator current_labels = labels.begin();
   for(;current_prediction != predictions.end();current_prediction++, current_labels++) {
     std::unique_ptr<Data> correct_indicator = std::unique_ptr<Data>(new DataCPU((*current_prediction)->get_num_samples(),
                                                                                 (*current_prediction)->get_width()));

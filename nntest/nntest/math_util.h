@@ -229,30 +229,4 @@ public:
   std::unique_ptr<Data> execute(Data* probabilities);
 };
 
-class Im2Col {
-public:
-  Im2Col(int stride, int filter_height, int filter_width) :
-   m_stride(stride),
-   m_filter_height(filter_height),
-   m_filter_width(filter_width) {};
-
-  //the height of the output matrix
-  long get_output_height(Data* matrix_in);
-  //the width of the output matrix
-  long get_output_width(Data* matrix_in);
-
-  //the height of the image after convolving
-  long get_height_convolved(Data* matrix_in);
-  //the height of the image after convolving
-  long get_width_convolved(Data* matrix_in);
-  
-  void execute(Data* matrix_in, Data* matrix_out);
-
-private:
-  int m_stride;
-  int m_filter_height;
-  int m_filter_width;
-  
-};
-
 #endif

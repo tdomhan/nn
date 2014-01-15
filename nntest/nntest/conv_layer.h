@@ -13,6 +13,7 @@
 #include "layer.h"
 
 #include "math_util.h"
+#include "im2col.h"
 
 #include <memory>
 

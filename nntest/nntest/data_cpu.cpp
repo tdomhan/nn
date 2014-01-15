@@ -108,15 +108,15 @@ std::unique_ptr<Data> DataCPU::vstack(std::vector<Data*> data) {
   return std::unique_ptr<Data>(stacked);
 }
 
-Data* DataCPU::get_rows_slice(long start, long end) {
+std::unique_ptr<Data> DataCPU::get_rows_slice(long start, long end) {
   long dim2 = end-start;
   Data* ret = new DataCPU(dim2,
                           get_size_dim(3),
                           &m_data[start*get_size_dim(3)]);
-  return ret;
+  return std::unique_ptr<Data>(ret);
 }
 
-Data* DataCPU::get_samples_slice(long dim0_start, long dim0_end) {
+std::unique_ptr<Data> DataCPU::get_samples_slice(long dim0_start, long dim0_end) {
   assert(dim0_end > dim0_start);
   long dim0 = dim0_end-dim0_start;
   long count_per_sample = get_count_per_sample();
@@ -125,13 +125,17 @@ Data* DataCPU::get_samples_slice(long dim0_start, long dim0_end) {
                           get_size_dim(2),
                           get_size_dim(3),
                           &m_data[dim0_start*count_per_sample]);
-  return ret;
+  return std::unique_ptr<Data>(ret);
 }
 
 void DataCPU::copy_from(const Data& other) {
   assert(get_total_count()<=other.get_total_count());
   double* other_data = other.get_data();
   memcpy(m_data, other_data, get_total_count()*sizeof( double ));
+}
+
+void DataCPU::set_zero() {
+  memset(m_data, 0, get_total_count()*sizeof( double ));
 }
 
 void DataCPU::print() {
